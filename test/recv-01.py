@@ -21,14 +21,14 @@ if __name__ == "__main__":
 
     # Create NRF24L01 communication object.
     # nrf = NRF24.NRF24(pi, ce=25, payload_size=15, channel=1, crc_bytes=2)
-    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.PAYLOAD_DYNAMIC_PAYLOAD, channel=1, crc_bytes=2)
+    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.PAYLOAD_DYNAMIC_PAYLOAD, channel=100, data_rate=RF24_DATA_RATE.DATA_RATE_250KBPS)
     # nrf = NRF24.NRF24(pi, ce=25)
 
     # Configure NRF24 transceiver to communicate at 250 KBPS ob channel 1 accepting dynamic payload sizes (1-32 bytes).
-    nrf.set_payload_size(RF24_PAYLOAD.PAYLOAD_DYNAMIC_PAYLOAD)  # duplicate
-    nrf.set_channel(1)                                          # duplicate
-    nrf.set_crc_bytes(2)                                        # duplicate
-    nrf.set_data_rate(RF24_DATA_RATE.DATA_RATE_250KBPS)         
+    #nrf.set_payload_size(RF24_PAYLOAD.PAYLOAD_DYNAMIC_PAYLOAD)  # duplicate
+    #nrf.set_channel(1)                                          # duplicate
+    #nrf.set_crc_bytes(2)                                        # duplicate
+    #nrf.set_data_rate(RF24_DATA_RATE.DATA_RATE_250KBPS)         
 
     # nrf.set_local_address("GW003")      # RX_ADDR_P1
     # nrf.set_remote_address("BABE1")     # RX_ADDR_P0, TX_ADDR
@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # nrf.open_reading_pipe(RF24_RX_ADDR.P4, "4BABE")
     # nrf.open_reading_pipe(RF24_RX_ADDR.P5, "5BABE")
     
-    nrf.set_channel(100)
+    #nrf.set_channel(100)
     nrf.open_reading_pipe(RF24_RX_ADDR.P0, [0x01, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf.open_reading_pipe(RF24_RX_ADDR.P1, [0x02, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf.open_reading_pipe(RF24_RX_ADDR.P2, [0x03, 0xCE, 0xFA, 0xBE, 0xBA])

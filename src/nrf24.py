@@ -1,6 +1,7 @@
 import pigpio
 from enum import Enum, IntEnum
 
+
 class RF24_PA(IntEnum):
     PA_MIN = 0,
     PA_LOW = 1,
@@ -8,21 +9,25 @@ class RF24_PA(IntEnum):
     PA_MAX = 3,
     PA_ERROR = 4
 
+
 class RF24_DATA_RATE(IntEnum):
     DATA_RATE_1MBPS = 0,
     DATA_RATE_2MBPS = 1,
     DATA_RATE_250KBPS = 2
 
-class RF24_CRC(Enum):
-    CRC_DISABLED = 0,
-    CRC_8 = 1,
-    CRC_16 = 2
+
+class RF24_CRC(IntEnum):
+    DISABLED = 0,
+    BYTES_1 = 1,
+    BYTES_2 = 2
+
 
 class RF24_PAYLOAD(IntEnum):
     PAYLOAD_ACK_PAYLOAD = -1
     PAYLOAD_DYNAMIC_PAYLOAD = 0
     PAYLOAD_MIN_PAYLOAD = 1
     PAYLOAD_MAX_PAYLOAD = 32
+
 
 class SPI_CHANNEL(IntEnum):
     CHANNEL_MAIN_CE0 = 0
@@ -31,6 +36,7 @@ class SPI_CHANNEL(IntEnum):
     CHANNEL_AUX_CE1 = 3
     CHANNEL_AUX_CE2 = 4
 
+
 class RF24_RX_ADDR(IntEnum):
     P0 = 0x0a,
     P1 = 0x0b,
@@ -38,6 +44,7 @@ class RF24_RX_ADDR(IntEnum):
     P3 = 0x0d,
     P4 = 0x0e,
     P5 = 0x0f
+
 
 class NRF24:
     """
@@ -83,7 +90,7 @@ class NRF24:
                  channel=76,                    # Radio channel
                  payload_size=RF24_PAYLOAD.PAYLOAD_MAX_PAYLOAD, # Message size in bytes (default: 32)
                  address_bytes=5,               # RX/TX address length in bytes
-                 crc_bytes=RF24_CRC.CRC_16,     # Number of CRC bytes
+                 crc_bytes=RF24_CRC.BYTES_2,     # Number of CRC bytes
                  pad=32                         # Value used to pad short messages
                  ):
 

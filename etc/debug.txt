@@ -1,0 +1,129 @@
+
+
+SNDR-00
+-------
+STATUS		 = 0x0e RX_DR=0 TX_DS=0 MAX_RT=0 RX_P_NO=7 TX_FULL=0
+RX_ADDR_P0-1	 = 0x3530314d53 (501MS) 0x3130305747 (100WG)
+RX_ADDR_P2-5	 = 0x03 0x04 0x05 0x06
+TX_ADDR		 = 0x3530314d53 (501MS)
+RX_PW_P0-6	 = 0x20 0x20 0x20 0x20 0x20 0x20
+EN_AA		 = 0x3f
+EN_RXADDR	 = 0x3f
+RF_CH		 = 0x01
+RF_SETUP	 = 0x27
+CONFIG		 = 0x0e
+DYNPD/FEATURE	 = 0x3f 0x04
+Data Rate	 = 250KBPS
+Model		 = nRF24L01+
+CRC Length	 = 16 bits
+PA Power	 = PA_MAX
+
+nrf24-mqtt-gateway
+------------------
+CONFIG: (0x0f) => RX_DR IRQ, TX_DS IRQ, MAX_RT IRQ, CRC on, CRC 2 byte, Power up, RX
+EN_AA: (0x3f) => P0:ACK P1:ACK P2:ACK P3:ACK P4:ACK P5:ACK 
+EN_RXADDR: (0x03) => P0:on P1:on P2:off P3:off P4:off P5:off 
+SETUP_AW: (0x03) => address width bytes 5
+SETUP_RETR: (0x1f) => retry delay 500 us, retries 15
+RF_CH: (0x01) => channel=1
+RF_SETUP: (0x27) => no continuous carrier, no force PLL lock, 250 kbps, 0 dBm
+STATUS: (0x0e) => no RX data, no TX, TX retries ok, no pipe data, TX FIFO not full
+OBSERVE_TX: (0x00) => lost packets 0, retries 0
+RPD: (0x00) => received power detector 0
+RX ADDR_PX: P0=0x3530314d53 (501MS) P1=0x3130305747 (100WG) P2=0xc3 P3=0xc4 P4=0xc5 P5=0xc6
+TX_ADDR: 0x3530314d53 (501MS)
+RX_PW_PX: P0=00 P1=00 P2=00 P3=00 P4=00 P5=00 
+FIFO_STATUS: (0x11) => TX reuse not set, TX FIFO empty, RX FIFO empty
+DYNPD: (0x3f) => P0:on P1:on P2:on P3:on P4:on P5:on 
+FEATURE: (0x04) => Dynamic payload on, ACK payload off, W_TX_PAYLOAD_NOACK off
+
+SNDR-00
+-------
+STATUS		 = 0x0e RX_DR=0 TX_DS=0 MAX_RT=0 RX_P_NO=7 TX_FULL=0
+RX_ADDR_P0-1	 = 0x3145424142 (1EBAB) 0x3330305747 (300WG)
+RX_ADDR_P2-5	 = 0x03 0x04 0x05 0x06
+TX_ADDR		 = 0x3145424142 (1EBAB)
+RX_PW_P0-6	 = 0x20 0x20 0x20 0x20 0x20 0x20
+EN_AA		 = 0x3f
+EN_RXADDR	 = 0x3f
+RF_CH		 = 0x01
+RF_SETUP	 = 0x27
+CONFIG		 = 0x0e
+DYNPD/FEATURE	 = 0x3f 0x04
+Data Rate	 = 250KBPS
+Model		 = nRF24L01+
+CRC Length	 = 16 bits
+PA Power	 = PA_MAX
+
+recv-01.py
+----------
+CONFIG: (0x0f) => RX_DR IRQ, TX_DS IRQ, MAX_RT IRQ, CRC on, CRC 2 byte, Power up, RX
+EN_AA: (0x3f) => P0:ACK P1:ACK P2:ACK P3:ACK P4:ACK P5:ACK 
+EN_RXADDR: (0x03) => P0:on P1:on P2:off P3:off P4:off P5:off 
+SETUP_AW: (0x03) => address width bytes 5
+SETUP_RETR: (0x1f) => retry delay 500 us, retries 15
+RF_CH: (0x01) => channel=1
+RF_SETUP: (0x27) => no continuous carrier, no force PLL lock, 250 kbps, 0 dBm
+STATUS: (0x0e) => no RX data, no TX, TX retries ok, no pipe data, TX FIFO not full
+OBSERVE_TX: (0x00) => lost packets 0, retries 0
+RPD: (0x00) => received power detector 0
+RX ADDR_PX: P0=0x3145424142 (1EBAB) P1=0x3330305747 (300WG) P2=0xc3 P3=0xc4 P4=0xc5 P5=0xc6
+TX_ADDR: 0x3145424142 (1EBAB) 
+RX_PW_PX: P0=00 P1=00 P2=00 P3=00 P4=00 P5=00 
+FIFO_STATUS: (0x11) => TX reuse not set, TX FIFO empty, RX FIFO empty
+DYNPD: (0x3f) => P0:on P1:on P2:on P3:on P4:on P5:on 
+FEATURE: (0x04) => Dynamic payload on, ACK payload off, W_TX_PAYLOAD_NOACK off
+
+
+
+SNDR-00
+-------
+STATUS		 = 0x0e RX_DR=0 TX_DS=0 MAX_RT=0 RX_P_NO=7 TX_FULL=0
+RX_ADDR_P0-1	 = 0x4542414235 (EBAB5) 0x3330305747 (300WG)
+RX_ADDR_P2-5	 = 0x03 0x04 0x05 0x06
+TX_ADDR		 = 0x4542414235 (EBAB5)
+RX_PW_P0-6	 = 0x20 0x20 0x20 0x20 0x20 0x20
+EN_AA		 = 0x3f
+EN_RXADDR	 = 0x3f
+RF_CH		 = 0x01
+RF_SETUP	 = 0x27
+CONFIG		 = 0x0e
+DYNPD/FEATURE	 = 0x3f 0x04
+Data Rate	 = 250KBPS
+Model		 = nRF24L01+
+CRC Length	 = 16 bits
+PA Power	 = PA_MAX
+
+CONFIG: (0x0f) => RX_DR IRQ, TX_DS IRQ, MAX_RT IRQ, CRC on, CRC 2 byte, Power up, RX
+EN_AA: (0x3f) => P0:ACK P1:ACK P2:ACK P3:ACK P4:ACK P5:ACK 
+EN_RXADDR: (0x3f) => P0:on P1:on P2:on P3:on P4:on P5:on 
+SETUP_AW: (0x03) => address width bytes 5
+SETUP_RETR: (0x1f) => retry delay 500 us, retries 15
+RF_CH: (0x01) => channel=1
+RF_SETUP: (0x27) => no continuous carrier, no force PLL lock, 250 kbps, 0 dBm
+STATUS: (0x0e) => no RX data, no TX, TX retries ok, no pipe data, TX FIFO not full
+OBSERVE_TX: (0x00) => lost packets 0, retries 0
+RPD: (0x00) => received power detector 0
+RX ADDR_PX: P0=0x4542414230 (EBAB0) P1=0x4542414231 (EBAB1) P2=0x32 (EBAB2) P3=0x33 (EBAB3) P4=0x34 (EBAB4) P5=0x35 (EBAB5)
+TX_ADDR: 0x3145424142 (1EBAB)
+RX_PW_PX: P0=00 P1=00 P2=00 P3=00 P4=00 P5=00 
+FIFO_STATUS: (0x11) => TX reuse not set, TX FIFO empty, RX FIFO empty
+DYNPD: (0x3f) => P0:on P1:on P2:on P3:on P4:on P5:on 
+FEATURE: (0x04) => Dynamic payload on, ACK payload off, W_TX_PAYLOAD_NOACK off
+
+CONFIG: (0x0f) => RX_DR IRQ, TX_DS IRQ, MAX_RT IRQ, CRC on, CRC 2 byte, Power up, RX
+EN_AA: (0x3f) => P0:ACK P1:ACK P2:ACK P3:ACK P4:ACK P5:ACK 
+EN_RXADDR: (0x03) => P0:on P1:on P2:off P3:off P4:off P5:off 
+SETUP_AW: (0x03) => address width bytes 5
+SETUP_RETR: (0x1f) => retry delay 500 us, retries 15
+RF_CH: (0x01) => channel=1
+RF_SETUP: (0x27) => no continuous carrier, no force PLL lock, 250 kbps, 0 dBm
+STATUS: (0x0e) => no RX data, no TX, TX retries ok, no pipe data, TX FIFO not full
+OBSERVE_TX: (0x00) => lost packets 0, retries 0
+RPD: (0x00) => received power detector 0
+RX ADDR_PX: P0=0x3530314d53 (501MS) P1=0x3130305747 (100WG) P2=0xc3 P3=0xc4 P4=0xc5 P5=0xc6
+TX_ADDR: 0x3530314d53  (501MS)
+RX_PW_PX: P0=00 P1=00 P2=00 P3=00 P4=00 P5=00 
+FIFO_STATUS: (0x11) => TX reuse not set, TX FIFO empty, RX FIFO empty
+DYNPD: (0x3f) => P0:on P1:on P2:on P3:on P4:on P5:on 
+FEATURE: (0x04) => Dynamic payload on, ACK payload off, W_TX_PAYLOAD_NOACK off

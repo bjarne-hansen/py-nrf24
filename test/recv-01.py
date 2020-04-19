@@ -4,6 +4,7 @@ from datetime import datetime
 from nrf24 import *
 import struct
 
+
 def bytes_to_hex(b):
     s = ''
     for i, v in enumerate(b):

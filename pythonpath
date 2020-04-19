@@ -1,0 +1,2 @@
+export PYTHONPATH=lib:src:test
+

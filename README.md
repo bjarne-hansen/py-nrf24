@@ -12,9 +12,22 @@ The ```nrf24``` packages depends on the ```pigpio``` package that is available v
 
     $ pip install nrf24
 
-## Example
+## Cloning
 
-Creating a simple listener running on the same host (localhost) as the pigpiod daemon (Raspberry Pi).  You may run this on a laptop connecting remotely to the Raspberry Pi, if your pigpiod has been configured for remote access.
+If you want to work with the source code and examples, you can clone the repository.
+
+    $ git clone https://github.com/bjarne-hansen/py-nrf24.git
+
+After cloning you should create a virtualenv and install requirements.
+
+    $ pip install -r requirements.txt
+
+Examples reads the environment variable ```PIGPIO_HOST``` in order to connect to the ```pigpiod``` daemon on the Raspberry Pi.
+
+    $ export PIGPIO_HOST=server.example.com
+
+
+## Example
 
 The example shows a listener reading temperature and humidity data sent from an Arduino Nano.
 
@@ -22,9 +35,10 @@ The example shows a listener reading temperature and humidity data sent from an 
 
     import pigpio
     import nrf24
+    import os.environ as env
 
     # Connect to Raspberry Pi
-    pi = pigpio.pi("localhost")
+    pi = pigpio.pi(env['PIGPIO_HOST'])
     
     # Set up NRF24L01 module for reading.
     radio = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC)

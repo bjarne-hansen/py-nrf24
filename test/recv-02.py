@@ -3,26 +3,21 @@ import time
 from datetime import datetime
 from nrf24 import *
 import struct
+from os import environ as env
 
-def bytes_to_hex(b):
-    s = ''
-    for i, v in enumerate(b):
-        s += f'{":" if i > 0 else ""}{v:02x}'
-    return s
 
 if __name__ == "__main__":
     print("Python NRF24 Receiver 02")
     
     # Connect to pigpiod
-    pi = pigpio.pi("pizw03.conspicio.dk")
+    pi = pigpio.pi(env['PIGPIO_HOST'])
     if not pi.connected:
         print("Not connected to Raspberry PI...goodbye.")
         exit()
 
     # Create NRF24L01 communication object.
     # nrf = NRF24.NRF24(pi, ce=25, payload_size=15, channel=1, crc_bytes=2)
-    nrf = NRF24(pi, ce=12, payload_size=RF24_PAYLOAD.PAYLOAD_DYNAMIC_PAYLOAD, channel=1, crc_bytes=2,
-                spi_channel=SPI_CHANNEL.CHANNEL_AUX_CE2)
+    nrf = NRF24(pi, ce=12, payload_size=RF24_PAYLOAD.DYNAMIC, channel=1, crc_bytes=2, spi_channel=SPI_CHANNEL.AUX_CE2)
     
     # Configure NRF24 transceiver to communicate at 250 KBPS ob channel 1 accepting dynamic payload sizes (1-32 bytes).
     nrf.set_data_rate(RF24_DATA_RATE.DATA_RATE_250KBPS)
@@ -44,7 +39,7 @@ if __name__ == "__main__":
             count += 1
             now = datetime.now()
             payload = nrf.get_payload()    
-            pls = bytes_to_hex(payload)
+            pls = ':'.join(f'{i:02x}' for i in payload)
             protocol = payload[0]
 
             print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {pls}, count: {count}")

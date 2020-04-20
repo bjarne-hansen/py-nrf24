@@ -3,17 +3,17 @@ from enum import Enum, IntEnum
 
 
 class RF24_PA(IntEnum):
-    PA_MIN = 0,
-    PA_LOW = 1,
-    PA_HIGH = 2,
-    PA_MAX = 3,
-    PA_ERROR = 4
+    MIN = 0,
+    LOW = 1,
+    HIGH = 2,
+    MAX = 3,
+    ERROR = 4
 
 
 class RF24_DATA_RATE(IntEnum):
-    DATA_RATE_1MBPS = 0,
-    DATA_RATE_2MBPS = 1,
-    DATA_RATE_250KBPS = 2
+    RATE_1MBPS = 0,
+    RATE_2MBPS = 1,
+    RATE_250KBPS = 2
 
 
 class RF24_CRC(IntEnum):
@@ -23,18 +23,18 @@ class RF24_CRC(IntEnum):
 
 
 class RF24_PAYLOAD(IntEnum):
-    PAYLOAD_ACK_PAYLOAD = -1
-    PAYLOAD_DYNAMIC_PAYLOAD = 0
-    PAYLOAD_MIN_PAYLOAD = 1
-    PAYLOAD_MAX_PAYLOAD = 32
+    ACK = -1
+    DYNAMIC = 0
+    MIN = 1
+    MAX = 32
 
 
 class SPI_CHANNEL(IntEnum):
-    CHANNEL_MAIN_CE0 = 0
-    CHANNEL_MAIN_CE1 = 1
-    CHANNEL_AUX_CE0 = 2
-    CHANNEL_AUX_CE1 = 3
-    CHANNEL_AUX_CE2 = 4
+    MAIN_CE0 = 0
+    MAIN_CE1 = 1
+    AUX_CE0 = 2
+    AUX_CE1 = 3
+    AUX_CE2 = 4
 
 
 class RF24_RX_ADDR(IntEnum):
@@ -80,18 +80,18 @@ class NRF24:
     RX = 1
 
     def __init__(self,
-                 pi,                            # pigpio Raspberry PI connection
-                 ce,                            # GPIO for chip enable
+                 pi,                                    # pigpio Raspberry PI connection
+                 ce,                                    # GPIO for chip enable
                  
-                 spi_channel=SPI_CHANNEL.CHANNEL_MAIN_CE0, # WAS: SPI_MAIN_CE0,      # SPI channel
-                 spi_speed=50e3,                # SPI bps 50.000 = 50 Mhz
+                 spi_channel=SPI_CHANNEL.MAIN_CE0,      # SPI channel
+                 spi_speed=50e3,                        # SPI bps 50.000 = 50 Mhz
 
-                 data_rate=RF24_DATA_RATE.DATA_RATE_1MBPS, # WAS: RF24_1MBPS,# Default data rate is 1 Mbits.
-                 channel=76,                    # Radio channel
-                 payload_size=RF24_PAYLOAD.PAYLOAD_MAX_PAYLOAD, # Message size in bytes (default: 32)
-                 address_bytes=5,               # RX/TX address length in bytes
-                 crc_bytes=RF24_CRC.BYTES_2,     # Number of CRC bytes
-                 pad=32                         # Value used to pad short messages
+                 data_rate=RF24_DATA_RATE.RATE_1MBPS,   # Default data rate is 1 Mbits.
+                 channel=76,                            # Radio channel
+                 payload_size=RF24_PAYLOAD.MAX,         # Message size in bytes (default: 32)
+                 address_bytes=5,                       # RX/TX address length in bytes
+                 crc_bytes=RF24_CRC.BYTES_2,            # Number of CRC bytes
+                 pad=32                                 # Value used to pad short messages
                  ):
 
         """
@@ -118,20 +118,18 @@ class NRF24:
         self.unset_ce()
 
         # SPI Channel
-        # WAS: assert NRF24.SPI_MAIN_CE0 <= spi_channel <= NRF24.SPI_AUX_CE2
-        # WAS: assert SPI_CHANNEL.CHANNEL_MAIN_CE0 <= spi_channel <= SPI_CHANNEL.CHANNEL_AUX_CE2
-        assert spi_channel >= SPI_CHANNEL.CHANNEL_MAIN_CE0 and spi_channel <= SPI_CHANNEL.CHANNEL_AUX_CE2
+        assert spi_channel >= SPI_CHANNEL.MAIN_CE0 and spi_channel <= SPI_CHANNEL.AUX_CE2
 
         # SPI speed between 32 KHz and 10 MHz
         assert 32000 <= spi_speed <= 10e6
 
         # Access SPI on the Raspberry PI.
-        if spi_channel < SPI_CHANNEL.CHANNEL_AUX_CE0: # WAS: NRF24.SPI_AUX_CE0:
+        if spi_channel < SPI_CHANNEL.AUX_CE0: # WAS: NRF24.SPI_AUX_CE0:
             # Main SPI
             self._spi_handle = pi.spi_open(spi_channel, int(spi_speed))
         else:
             # Aux SPI.
-            self._spi_handle = pi.spi_open(spi_channel - SPI_CHANNEL.CHANNEL_AUX_CE0, int(spi_speed), NRF24._AUX_SPI)
+            self._spi_handle = pi.spi_open(spi_channel - SPI_CHANNEL.AUX_CE0, int(spi_speed), NRF24._AUX_SPI)
 
         # NRF data rate
         self._data_rate = data_rate
@@ -173,8 +171,7 @@ class NRF24:
         self._nrf_write_reg(self.RF_CH, self._channel)
 
     def set_payload_size(self, payload):
-        # WAS: assert self.ACK_PAYLOAD <= payload <= self.MAX_PAYLOAD
-        assert RF24_PAYLOAD.PAYLOAD_ACK_PAYLOAD <= payload <= RF24_PAYLOAD.PAYLOAD_MAX_PAYLOAD
+        assert RF24_PAYLOAD.ACK <= payload <= RF24_PAYLOAD.MAX
         self._payload_size = payload  # 0 is dynamic payload
         self._configure_payload()
 
@@ -201,7 +198,7 @@ class NRF24:
         # RF24_1MBPS   = 0
         # RF24_2MBPS   = 1
         # RF24_250KBPS = 2
-        assert RF24_DATA_RATE.DATA_RATE_1MBPS <= rate <= RF24_DATA_RATE.DATA_RATE_250KBPS
+        assert RF24_DATA_RATE.RATE_1MBPS <= rate <= RF24_DATA_RATE.RATE_250KBPS
 
         # Read current setup value from register.
         value = self._nrf_read_reg(self.RF_SETUP, 1)[0]
@@ -210,10 +207,10 @@ class NRF24:
         value &= ~(NRF24.RF_DR_LOW | NRF24.RF_DR_HIGH)
 
         # Set the RF_DR_LOW bit if speed is 250 Kbps
-        if rate == RF24_DATA_RATE.DATA_RATE_250KBPS: # WAS NRF24.RF24_250KBPS:
+        if rate == RF24_DATA_RATE.RATE_250KBPS: # WAS NRF24.RF24_250KBPS:
             value |= NRF24.RF_DR_LOW
         # Set the RF_DR_HIGH bit if speed is 2 Mbps
-        elif rate == RF24_DATA_RATE.DATA_RATE_2MBPS: # WAS:NRF24.RF24_2MBPS:
+        elif rate == RF24_DATA_RATE.RATE_2MBPS: # WAS:NRF24.RF24_2MBPS:
             value |= NRF24.RF_DR_HIGH
 
         # Write value back to setup register.
@@ -263,7 +260,7 @@ class NRF24:
         if status & (self.TX_FULL | self.MAX_RT):
             self.flush_tx()
 
-        if self._payload_size >= RF24_PAYLOAD.PAYLOAD_MIN_PAYLOAD: # WAS: self.MIN_PAYLOAD:  # fixed payload
+        if self._payload_size >= RF24_PAYLOAD.MIN:  # fixed payload
             data = self._make_fixed_width(data, self._payload_size, self._padding)
 
         self._nrf_command([self.W_TX_PAYLOAD] + data)
@@ -342,7 +339,6 @@ class NRF24:
         
         status = self.get_status()
         if status & self.RX_DR:
-            #print(f"status: {status:02x}, pipe: {(status >> 1) & 0x07:02x}")
             return True
 
         fifo_status = self._nrf_read_reg(self.FIFO_STATUS, 1)[0]
@@ -361,15 +357,17 @@ class NRF24:
         return False
 
     def get_payload(self):
-        if self._payload_size < RF24_PAYLOAD.PAYLOAD_MIN_PAYLOAD: # WAS: self.MIN_PAYLOAD:  # dynamic payload
+        if self._payload_size < RF24_PAYLOAD.MIN: 
+            # dynamic payload
             bytes_count = self._nrf_command([self.R_RX_PL_WID, 0])[1]
-        else:   # fixed payload
+        else:
+            # fixed payload   
             bytes_count = self._payload_size
 
         d = self._nrf_read_reg(self.R_RX_PAYLOAD, bytes_count)
-        self.unset_ce()  # added
+        self.unset_ce()     # added
         self._nrf_write_reg(self.STATUS, self.RX_DR)
-        self.set_ce()  # added
+        self.set_ce()       # added
         return d
 
     def get_status(self):
@@ -431,16 +429,16 @@ class NRF24:
         self._nrf_xfer([self.W_REGISTER | reg] + arg)
 
     def _configure_payload(self):
-        if self._payload_size >= RF24_PAYLOAD.PAYLOAD_MIN_PAYLOAD: # WAS: NRF24.MIN_PAYLOAD:                              # fixed payload
+        if self._payload_size >= RF24_PAYLOAD.MIN:                      # fixed payload
             self._nrf_write_reg(NRF24.RX_PW_P0, self._payload_size)
             self._nrf_write_reg(NRF24.RX_PW_P1, self._payload_size)
             self._nrf_write_reg(NRF24.DYNPD, 0)
             self._nrf_write_reg(NRF24.FEATURE, 0)
-        else:                                                                   # dynamic payload
+        else:                                                           # dynamic payload
             self._nrf_write_reg(NRF24.RX_PW_P0, 0)
             self._nrf_write_reg(NRF24.RX_PW_P1, 0)
             self._nrf_write_reg(NRF24.DYNPD, NRF24.DPL_P0 | NRF24.DPL_P1 | NRF24.DPL_P2 | NRF24.DPL_P3 | NRF24.DPL_P4 | NRF24.DPL_P5 | NRF24.DPL_P6 | NRF24.DPL_P7)
-            if self._payload_size == RF24_PAYLOAD.PAYLOAD_ACK_PAYLOAD: # WAS: NRF24.ACK_PAYLOAD:
+            if self._payload_size == RF24_PAYLOAD.ACK: 
                 self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY)
             else:
                 self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)

@@ -1,11 +1,12 @@
 import pigpio
 import time
 from datetime import datetime
-from nrf24 import NRF24, RF24_PAYLOAD, RF24_DATA_RATE, RF24_RX_ADDR
+from nrf24 import *
 import struct
 from os import environ as env
 
 if __name__ == "__main__":
+
     print("Python NRF24 Receiver 01")
     
     # Connect to pigpiod
@@ -17,36 +18,43 @@ if __name__ == "__main__":
     # Create NRF24L01 communication object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
 
-    nrf.open_reading_pipe(RF24_RX_ADDR.P0, [0x01, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P1, [0x02, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P2, [0x03, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P3, [0x04, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P4, [0x05, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P5, [0x06, 0xCE, 0xFA, 0xBE, 0xBA])
-
+    # Listen on a bunch of adresses.
+    nrf.open_reading_pipe(RF24_RX_ADDR.P1, [0x01, 0xCE, 0xFA, 0xBE, 0xBA])
+    nrf.open_reading_pipe(RF24_RX_ADDR.P2, [0x02, 0xCE, 0xFA, 0xBE, 0xBA])
+    nrf.open_reading_pipe(RF24_RX_ADDR.P3, [0x03, 0xCE, 0xFA, 0xBE, 0xBA])
+    nrf.open_reading_pipe(RF24_RX_ADDR.P4, [0x04, 0xCE, 0xFA, 0xBE, 0xBA])
+    
 
     # Wait for device to settle and display the content of device registers.
     time.sleep(0.5)
     nrf.show_registers()
 
-    protocol_formats = {0: "<Bhhh", 1: "<Bff", 2: "<Bhh", 3: "<Bff"}
+    #
+    # Different protocol layouts.
+    # protocol=1 (byte), temperature (float), humidity (float)
+    # protocol=2 (byte), soil moisture 1 (int), soil moisture 2 (int)
+    # protocol=3 (byte), temperature 1 (float), temperature 2 (float)
+    #
+    protocol_formats = {1: "<Bff", 2: "<Bhh", 3: "<Bff"}
 
     count = 0
     while True:
 
         # As long as data is ready for processing, process it.
         while nrf.data_ready():
-            pipe = nrf.data_pipe()
+            # Count message and record time of reception.            
             count += 1
             now = datetime.now()
+            
+            # Read pipe and payload for message.
+            pipe = nrf.data_pipe()
             payload = nrf.get_payload()    
-            pls = ':'.join(f'{i:02x}' for i in payload)
-            if len(payload) > 0:
-                protocol = payload[0]
-            else:
-                protocol = -1
 
-            print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {pls}, count: {count}")
+            # Resolve protocol number.
+            protocol = payload[0] if len(payload) > 0 else -1            
+
+            # Report on message received.
+            print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {hex}, count: {count}")
             
             fmt = protocol_formats.get(protocol)
             if fmt is None:

@@ -1,49 +1,22 @@
 import pigpio
 import time
 from datetime import datetime
-from nrf24 import *
+from nrf24 import NRF24, RF24_PAYLOAD, RF24_DATA_RATE, RF24_RX_ADDR
 import struct
-
-
-def bytes_to_hex(b):
-    s = ''
-    for i, v in enumerate(b):
-        s += f'{":" if i > 0 else ""}{v:02x}'
-    return s
+from os import environ as env
 
 if __name__ == "__main__":
     print("Python NRF24 Receiver 01")
     
     # Connect to pigpiod
-    pi = pigpio.pi("pizw03.conspicio.dk")
+    pi = pigpio.pi(env['PIGPIO_HOST'])
     if not pi.connected:
         print("Not connected to Raspberry PI...goodbye.")
         exit()
 
     # Create NRF24L01 communication object.
-    # nrf = NRF24.NRF24(pi, ce=25, payload_size=15, channel=1, crc_bytes=2)
-    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.PAYLOAD_DYNAMIC_PAYLOAD, channel=100, data_rate=RF24_DATA_RATE.DATA_RATE_250KBPS)
-    # nrf = NRF24.NRF24(pi, ce=25)
+    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
 
-    # Configure NRF24 transceiver to communicate at 250 KBPS ob channel 1 accepting dynamic payload sizes (1-32 bytes).
-    #nrf.set_payload_size(RF24_PAYLOAD.PAYLOAD_DYNAMIC_PAYLOAD)  # duplicate
-    #nrf.set_channel(1)                                          # duplicate
-    #nrf.set_crc_bytes(2)                                        # duplicate
-    #nrf.set_data_rate(RF24_DATA_RATE.DATA_RATE_250KBPS)         
-
-    # nrf.set_local_address("GW003")      # RX_ADDR_P1
-    # nrf.set_remote_address("BABE1")     # RX_ADDR_P0, TX_ADDR
-    # nrf.open_writing_pipe("3GW00")      # RX_ADDR_P0, TX_ADDR
-    # nrf.open_reading_pipe(0, "0EBAB")
-
-    # nrf.open_reading_pipe(RF24_RX_ADDR.P0, "0BABE")
-    # nrf.open_reading_pipe(RF24_RX_ADDR.P1, "1BABE")
-    # nrf.open_reading_pipe(RF24_RX_ADDR.P2, "2BABE")
-    # nrf.open_reading_pipe(RF24_RX_ADDR.P3, "3BABE")
-    # nrf.open_reading_pipe(RF24_RX_ADDR.P4, "4BABE")
-    # nrf.open_reading_pipe(RF24_RX_ADDR.P5, "5BABE")
-    
-    #nrf.set_channel(100)
     nrf.open_reading_pipe(RF24_RX_ADDR.P0, [0x01, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf.open_reading_pipe(RF24_RX_ADDR.P1, [0x02, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf.open_reading_pipe(RF24_RX_ADDR.P2, [0x03, 0xCE, 0xFA, 0xBE, 0xBA])
@@ -67,7 +40,7 @@ if __name__ == "__main__":
             count += 1
             now = datetime.now()
             payload = nrf.get_payload()    
-            pls = bytes_to_hex(payload)
+            pls = ':'.join(f'{i:02x}' for i in payload)
             if len(payload) > 0:
                 protocol = payload[0]
             else:

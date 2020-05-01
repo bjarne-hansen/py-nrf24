@@ -53,6 +53,8 @@ if __name__ == "__main__":
             # Resolve protocol number.
             protocol = payload[0] if len(payload) > 0 else -1            
 
+            hex = ':'.join(f'{i:02x}' for i in payload)
+
             # Report on message received.
             print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {hex}, count: {count}")
             

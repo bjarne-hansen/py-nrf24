@@ -1,3 +1,7 @@
 venv
 __pycache__
 .DS_Store
+/build
+/dist
+/nrf24.egg-info
+/src/nrf24.egg-info

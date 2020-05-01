@@ -266,8 +266,17 @@ class NRF24:
         self._nrf_command([self.W_TX_PAYLOAD] + data)
         self.power_up_tx()
 
-    def ack_payload(self, data):
-        self._nrf_command([self.W_ACK_PAYLOAD] + data)
+    # Added 2020-05-01, Bjarne Hansen
+    def reset_plos(self):
+        v = self._nrf_read_reg(NRF24.RF_CH, 1)[0]
+        self._nrf_write_reg(NRF24.RF_CH, v)
+
+    # Changed 2020-05-01, Bjarne Hansen
+    # WAS:
+    # def ack_payload(self, data):
+    #     self._nrf_command([self.W_ACK_PAYLOAD] + data)
+    def ack_payload(self, pipe, data):
+        self._nrf_command([self.W_ACK_PAYLOAD | (pipe & 0x07)] + data)
 
     def open_writing_pipe(self, address):
         addr = self._make_fixed_width(address, self._address_width, self._padding)

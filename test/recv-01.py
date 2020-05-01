@@ -16,7 +16,11 @@ if __name__ == "__main__":
         exit()
 
     # Create NRF24L01 communication object.
+    # On a Raspberry Pi with multiple nrf24l01 transceiver modules we can use one or the other.  Actually, several can be installed and used.
+    # Please refer to https://pinout.xyz/pinout/spi for information on SPI0: CE0 and CE1, SPI1: CE0, CE1, and CE2 (up to 5 in total).
+     
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
+#    nrf = NRF24(pi, ce=12, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, spi_channel=SPI_CHANNEL.AUX_CE2)
 
     # Listen on a bunch of adresses.
     nrf.open_reading_pipe(RF24_RX_ADDR.P1, [0x01, 0xCE, 0xFA, 0xBE, 0xBA])

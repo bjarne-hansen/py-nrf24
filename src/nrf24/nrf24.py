@@ -1,5 +1,6 @@
 import pigpio
 from enum import Enum, IntEnum
+from os import environ as env
 
 
 class RF24_PA(IntEnum):
@@ -9,17 +10,83 @@ class RF24_PA(IntEnum):
     MAX = 3,
     ERROR = 4
 
+    @staticmethod
+    def from_value(value):
+        if value is None:
+            raise ValueError(f'"None" is not a RF24_PA value.')
+
+        if isinstance(value, RF24_PA):
+            return value
+
+        elif isinstance(value, int):
+            for e in RF24_PA:
+                if value == e.value:
+                    return e
+            raise ValueError(f'Value {value} is not a RF24_PA value.')
+
+        elif isinstance(value, str):
+            for e in RF24_PA:
+                if value.lower() == e.name.lower():
+                    return e
+            raise ValueError(f'Value {value} is not a RF24_PA name.')
+
+        else:
+            raise ValueError(f'{value} ({type(value)}) is not a RF24_PA value.')
+
 
 class RF24_DATA_RATE(IntEnum):
     RATE_1MBPS = 0,
     RATE_2MBPS = 1,
     RATE_250KBPS = 2
 
+    @staticmethod
+    def from_value(value):
+        if value is None:
+            raise ValueError(f'"None" is not a RF24_DATA_RATE value.')
+
+        if isinstance(value, RF24_DATA_RATE):
+            return value
+
+        elif isinstance(value, int):
+            for e in RF24_DATA_RATE:
+                if value == e.value:
+                    return e
+            raise ValueError(f'Value {value} is not a RF24_DATA_RATE value.')
+
+        elif isinstance(value, str):
+            for e in RF24_DATA_RATE:
+                if value.lower() == e.name.lower():
+                    return e
+            raise ValueError(f'Value {value} is not a RF24_DATA_RATE name.')
+
+        else:
+            raise ValueError(f'{value} ({type(value)}) is not a RF24_DATA_RATE value.')
+
 
 class RF24_CRC(IntEnum):
     DISABLED = 0,
     BYTES_1 = 1,
     BYTES_2 = 2
+
+    @staticmethod
+    def from_value(value):
+        if value is None:
+            raise ValueError(f'"None" is not a RF24_CRC value.')
+
+        if isinstance(value, RF24_CRC):
+            return value
+        elif isinstance(value, int):
+            for e in RF24_CRC:
+                if value == e.value:
+                    return e
+            raise ValueError(f'Value {value} is not a RF24_CRC value.')
+        elif isinstance(value, str):
+            for e in RF24_CRC:
+                if value.lower() == e.name.lower():
+                    return e
+            raise ValueError(f'Value {value} is not a RF24_CRC name.')
+        else:
+            raise ValueError(f'{value} ({type(value)}) is not an RF24_CRC value.')
 
 
 class RF24_PAYLOAD(IntEnum):
@@ -28,6 +95,32 @@ class RF24_PAYLOAD(IntEnum):
     MIN = 1
     MAX = 32
 
+    @staticmethod
+    def from_value(value):
+        if value is None:
+            raise ValueError(f'"None" is not a RF24_PAYLOAD value.')
+
+        if isinstance(value, RF24_PAYLOAD):
+            return value
+
+        elif isinstance(value, int):
+            for e in RF24_PAYLOAD:
+                if value == e.value:
+                    return e
+            if value >= ACK and value <= MAX:
+                return value
+
+            raise ValueError(f'Value {value} is not a RF24_PAYLOAD value.')
+
+        elif isinstance(value, str):
+            for e in RF24_PAYLOAD:
+                if value.lower() == e.name.lower():
+                    return e                    
+            raise ValueError(f'Value {value} is not a RF24_PAYLOAD name.')
+
+        else:
+            raise ValueError(f'{value} ({type(value)}) is not an RF24_PAYLOAD value.')
+
 
 class SPI_CHANNEL(IntEnum):
     MAIN_CE0 = 0
@@ -35,6 +128,31 @@ class SPI_CHANNEL(IntEnum):
     AUX_CE0 = 2
     AUX_CE1 = 3
     AUX_CE2 = 4
+
+    @staticmethod
+    def from_value(value):
+        if value is None:
+            raise ValueError(f'"None" is not a SPI_CHANNEL value.')
+
+        if isinstance(value, SPI_CHANNEL):
+            return value
+
+        elif isinstance(value, int):
+            for e in SPI_CHANNEL:
+                if value == e.value:
+                    return e
+            
+            raise ValueError(f'Value {value} is not a SPI_CHANNEL value.')
+
+        elif isinstance(value, str):
+            for e in RF24_PAYLOAD:
+                if value.lower() == e.name.lower():
+                    return e                    
+            raise ValueError(f'Value {value} is not a SPI_CHANNEL name.')
+
+        else:
+            raise ValueError(f'{value} ({type(value)}) is not an SPI_CHANNEL value.')
+    
 
 
 class RF24_RX_ADDR(IntEnum):
@@ -78,6 +196,48 @@ class NRF24:
     
     TX = 0
     RX = 1
+
+    @staticmethod
+    def from_config(config, pi=None, pigpio_section='pigpio', nrf24_section='nrf24'):
+        
+
+        # Get pigpio configuration.
+        if pi is None:
+            host = config[pigpio_section].get('host', env.get('PIGPIO_HOST', 'localhost'))
+            port = config[pigpio_section].getint('port', env.get('PIGPIO_PORT', 8888))
+            pi = pigpio.pi(host, port)
+    
+        # Get nrf24 configuration
+        ce_pin = config[nrf24_section].getint('ce_pin', 25)
+        spi_channel = SPI_CHANNEL.from_value(config[nrf24_section].get('spi_channel', SPI_CHANNEL.MAIN_CE0))
+        spi_speed = config[nrf24_section].getint('spi_speed', 50e4)
+        data_rate = RF24_DATA_RATE.from_value(config['nrf24'].get('data_rate', RF24_DATA_RATE.RATE_1MBPS))
+        channel = config[nrf24_section].getint('channel', 76)
+        payload_size = RF24_PAYLOAD.from_value(config[nrf24_section].get('payload_size', RF24_PAYLOAD.MAX))
+        address_bytes = config[nrf24_section].getint('address_size', 5)
+        crc_bytes = RF24_CRC.from_value(config[nrf24_section].getint('address_size', RF24_CRC.BYTES_2))
+        pad = config[nrf24_section].getint('pad', 32)
+
+        nrf = NRF24(pi, ce=ce_pin, spi_channel=spi_channel, spi_speed=spi_speed,data_rate=data_rate,channel=channel,payload_size=payload_size,address_bytes=address_bytes,crc_bytes=crc_bytes,pad=pad)
+
+        if config[nrf24_section].get('tx_addr', None) is not None:
+            nrf.open_writing_pipe(config[nrf24_section].get('tx_addr', None))
+        
+        if config[nrf24_section].get('rx_addr_0', None) is not None:
+            nrf.open_reading_pipe(0, config[nrf24_section].get('rx_addr_0', None))
+        if config[nrf24_section].get(nrf24_section, None) is not None:
+            nrf.open_reading_pipe(1, config[nrf24_section].get('rx_addr_1', None))
+        if config[nrf24_section].get('rx_addr_2', None) is not None:
+            nrf.open_reading_pipe(2, config[nrf24_section].get('rx_addr_2', None))
+        if config[nrf24_section].get('rx_addr_3', None) is not None:
+            nrf.open_reading_pipe(3, config[nrf24_section].get('rx_addr_3', None))
+        if config[nrf24_section].get('rx_addr_4', None) is not None:
+            nrf.open_reading_pipe(4, config[nrf24_section].get('rx_addr_4', None))
+        if config[nrf24_section].get('rx_addr_5', None) is not None:
+            nrf.open_reading_pipe(5, config[nrf24_section].get('rx_addr_5', None))
+
+        return nrf
+
 
     def __init__(self,
                  pi,                                    # pigpio Raspberry PI connection
@@ -253,9 +413,19 @@ class NRF24:
             return msg
 
     def send(self, data):
-        if isinstance(data, str):
-            data = list(map(ord, data))
 
+        # We expect a list of byte values to be sent.  However, popular types
+        # such as string, integer, bytes, and bytearray are handled automatically using
+        # this conversion code.
+        if not isinstance(data, list):
+
+            if isinstance(data, str):
+                data = list(map(ord, data))
+            elif isinstance(data, int):
+                data = list(data.to_bytes(-(-data.bit_length() // 8), 'little'))              
+            else:
+                data = list(data)
+        
         status = self.get_status()
         if status & (self.TX_FULL | self.MAX_RT):
             self.flush_tx()

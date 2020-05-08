@@ -5,7 +5,7 @@ with open("PyPI.md", "r") as fh:
 
 setuptools.setup(
     name="nrf24",
-    version="0.8.0",
+    version="1.0.0",
     keywords='nrf24l01 iot raspberry arduino',
     author="Bjarne Hansen",
     author_email="bjarne@conspicio.dk",
@@ -18,10 +18,10 @@ setuptools.setup(
     packages=setuptools.find_namespace_packages(where="src"),
     install_requires=['pigpio'],
     classifiers=[
-        "Development Status :: 4 - Beta",
-        "Programming Language :: Python :: 3.7",
+        "Development Status :: 5 - Production/Stable",
+        "Programming Language :: Python :: 3.6",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.7',
+    python_requires='>=3.6',
 )

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     
     # Configure NRF24 transceiver to communicate at 250 KBPS ob channel 1 accepting dynamic payload sizes (1-32 bytes).
     nrf.set_data_rate(RF24_DATA_RATE.DATA_RATE_250KBPS)
-    nrf.open_writing_pipe("SM105")
+    nrf.open_writing_pipe("1LD57")
     nrf.open_reading_pipe(RF24_RX_ADDR.P1, "GW001")
     
     # Wait for device to settle and display the content of device registers.

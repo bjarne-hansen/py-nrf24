@@ -10,7 +10,7 @@ if __name__ == "__main__":
     print("Python NRF24 Receiver 01")
     
     # Connect to pigpiod
-    pi = pigpio.pi(env['PIGPIO_HOST'])
+    pi = pigpio.pi(env.get('PIGPIO_HOST', 'localhost'), env.get('PIGPIO_PORT', 8888))
     if not pi.connected:
         print("Not connected to Raspberry PI...goodbye.")
         exit()
@@ -21,13 +21,12 @@ if __name__ == "__main__":
      
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
 #    nrf = NRF24(pi, ce=12, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, spi_channel=SPI_CHANNEL.AUX_CE2)
-
+    
     # Listen on a bunch of adresses.
     nrf.open_reading_pipe(RF24_RX_ADDR.P1, [0x01, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf.open_reading_pipe(RF24_RX_ADDR.P2, [0x02, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf.open_reading_pipe(RF24_RX_ADDR.P3, [0x03, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf.open_reading_pipe(RF24_RX_ADDR.P4, [0x04, 0xCE, 0xFA, 0xBE, 0xBA])
-    
 
     # Wait for device to settle and display the content of device registers.
     time.sleep(0.5)

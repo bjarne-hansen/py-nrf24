@@ -236,7 +236,7 @@ class NRF24:
         if config[nrf24_section].get('rx_addr_5', None) is not None:
             nrf.open_reading_pipe(5, config[nrf24_section].get('rx_addr_5', None))
 
-        return nrf
+        return nrf, pi
 
 
     def __init__(self,

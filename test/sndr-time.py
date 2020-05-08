@@ -4,7 +4,7 @@ from datetime import datetime
 from nrf24 import *
 import struct
 from os import environ as env
-from configparser import ConfigParser, ExtendedInterpolation
+from configparser import ConfigParser
 
 if __name__ == "__main__":
     #
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # Create NRF24 from configuration.
     config = ConfigParser()
     config.read('etc/sndr-time.ini')
-    nrf = NRF24.from_config(config)
+    nrf, pi = NRF24.from_config(config)
     
     # Publish date/time information every 5 seconds.
     delay = 5

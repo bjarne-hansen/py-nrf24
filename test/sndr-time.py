@@ -29,7 +29,7 @@ if __name__ == "__main__":
                 # Create payload as bytes.
                 payload = struct.pack("<B4sHBBBBBB", 0xfe, b'TIME', now.year, now.month, now.day, \
                     now.hour, now.minute, now.second, \
-                    now.weekday())
+                    now.isoweekday())
                 
                 # Send the payload to whoever may be listening.
                 nrf.send(payload)                

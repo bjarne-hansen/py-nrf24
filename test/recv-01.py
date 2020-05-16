@@ -10,6 +10,7 @@ if __name__ == "__main__":
     print("Python NRF24 Receiver 01")
     
     # Connect to pigpiod
+    print("Connecting to:", env.get('PIGPIO_HOST', 'localhost'), env.get('PIGPIO_PORT', 8888))
     pi = pigpio.pi(env.get('PIGPIO_HOST', 'localhost'), env.get('PIGPIO_PORT', 8888))
     if not pi.connected:
         print("Not connected to Raspberry PI...goodbye.")

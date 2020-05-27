@@ -114,7 +114,7 @@ The corresponding Arduino transmitter code would be along the following lines:
         memcpy((payload + 5), (byte *)(&h), 4);
     
         // Send payload.
-        radio.write(payload, 9)
+        radio.write(payload, 9);
     }
 
 The wiring for the Arduino Nano, the NRF24L01 module, and the DHT22 temperature sensor would be like shown in the Fritzing sketch below.

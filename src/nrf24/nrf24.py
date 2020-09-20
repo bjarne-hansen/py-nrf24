@@ -107,7 +107,7 @@ class RF24_PAYLOAD(IntEnum):
             for e in RF24_PAYLOAD:
                 if value == e.value:
                     return e
-            if value >= ACK and value <= MAX:
+            if value >= RF24_PAYLOAD.ACK and value <= RF24_PAYLOAD.MAX:
                 return value
 
             raise ValueError(f'Value {value} is not a RF24_PAYLOAD value.')
@@ -376,6 +376,35 @@ class NRF24:
         # Write value back to setup register.
         self._nrf_write_reg(self.RF_SETUP, value)
 
+    def set_pa_level(self, level):
+        #uint8_t setup = read_register(RF_SETUP) & 0xF8
+        #if (level > 3) {                        // If invalid level, go to max PA
+        #    level = (RF24_PA_MAX << 1) + 1;        // +1 to support the SI24R1 chip extra bit
+        #} else {
+        #    level = (level << 1) + 1;            // Else set level as requested
+        #}
+        #write_register(RF_SETUP, setup |= level);    // Write it to the chip
+        if not isinstance(level, int):
+            raise ValueError("PA level must be int.")
+        
+        if  level < RF24_PA.MIN or level > RF24_PA.MAX:
+            level = (RF24_PA.MAX << 1) + 1
+        else:
+            level = (level << 1) + 1
+
+        value = self._nrf_read_reg(NRF24.RF_SETUP, 1)[0]
+        value &= 0xf8
+        value |= level
+
+        self._nrf_write_reg(NRF24.RF_SETUP, value)
+
+    def get_pa_level(self):
+        #return (read_register(RF_SETUP) & (_BV(RF_PWR_LOW) | _BV(RF_PWR_HIGH))) >> 1;
+        value = self._nrf_read_reg(NRF24.RF_SETUP, 1)[0]
+        value &= (NRF24.RF_PWR_LOW | NRF24.RF_PWR_HIGH)
+        value >>= 1
+        return RF24_PA(value)
+
     def get_spi_handle(self):
         return self._spi_handle
 
@@ -529,9 +558,11 @@ class NRF24:
     def is_sending(self):
         if self._power_tx > 0:
             status = self.get_status()
+            
             if status & (self.TX_DS | self.MAX_RT):
                 self.power_up_rx()
                 return False
+                
             return True
         return False
 
@@ -795,6 +826,8 @@ class NRF24:
     RF_DR_LOW = 1 << 5
     PLL_LOCK = 1 << 4
     RF_DR_HIGH = 1 << 3
+    RF_PWR_LOW = 1 << 1
+    RF_PWR_HIGH = 1 << 2
 
     # RF_PWR  2-1
     def format_rf_setup(self):

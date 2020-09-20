@@ -19,8 +19,10 @@ if __name__ == "__main__":
         exit()
 
     # Create NRF24 object.
-    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
-    nrf.open_reading_pipe(1, "DTCLI")
+    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=1, data_rate=RF24_DATA_RATE.RATE_250KBPS)
+    #nrf.set_pa_level(RF24_PA.MAX)
+    #print(f'PA level={nrf.get_pa_level()}, {type(nrf.get_pa_level())}')
+    nrf.open_reading_pipe(1, "DTSVR")
 
     # We only look for the date/time protocol (0xfe)
     protocol_formats = {0xfe: "<B4sHBBBBBB"}

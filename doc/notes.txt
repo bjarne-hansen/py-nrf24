@@ -1,0 +1,57 @@
+__init__
+
+set_channel(channel)
+set_payload_size(size)
+set_padding(padding)        # Padding 
+set_address_bytes(bytes)    # Address width
+set_crc_bytes(bytes)
+set_data_rate(rate)
+set_pa_level(level)
+get_pa_level()
+
+get_spi_handle()
+show_registers()
+send(message)
+reset_plos()
+ack_payload()
+open_writing_pipe(addr)
+open_reading_pipe(pipe, addr)
+set_local_address(address)
+set_remote_address(address)
+data_ready_pipe(pipe)
+data_pipe()
+data_ready()
+is_sending()
+get_payload()
+get_status()
+power_up_tx()
+power_up_rx()
+power_down()
+set_ce()
+unset_ce()
+flush_rx()
+flush_tx()
+
+format_config()
+format_en_aa()
+format_en_rxaddr()
+format_setup_aw()
+format_setup_retr()
+format_rf_ch()
+format_rf_setup()
+format_status()
+format_observe_tx()
+format_rpd()
+format_rx_addr_px()
+format_tx_addr()
+format_rx_pw_px()
+format_fifo_status()
+format_dynpd()
+format_dynpd()
+
+
+PA level
+MIN     = -18 dbm
+LOW     = -12 dBm
+HIGH    =  -6 dBm
+MAX     =   0 dbm

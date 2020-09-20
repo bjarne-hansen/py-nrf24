@@ -3,6 +3,7 @@ import setuptools
 with open("PyPI.md", "r") as fh:
     long_description = fh.read()
 
+# Run setup tools...
 setuptools.setup(
     name="nrf24",
     version="1.1.0",

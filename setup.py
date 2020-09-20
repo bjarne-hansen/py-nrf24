@@ -3,9 +3,10 @@ import setuptools
 with open("PyPI.md", "r") as fh:
     long_description = fh.read()
 
+# Run setup tools...
 setuptools.setup(
     name="nrf24",
-    version="1.0.2",
+    version="1.1.0",
     keywords='nrf24l01 iot raspberry arduino',
     author="Bjarne Hansen",
     author_email="bjarne@conspicio.dk",

@@ -642,11 +642,19 @@ class NRF24:
         if self._payload_size >= RF24_PAYLOAD.MIN:                      # fixed payload
             self._nrf_write_reg(NRF24.RX_PW_P0, self._payload_size)
             self._nrf_write_reg(NRF24.RX_PW_P1, self._payload_size)
+            self._nrf_write_reg(NRF24.RX_PW_P2, self._payload_size)
+            self._nrf_write_reg(NRF24.RX_PW_P3, self._payload_size)
+            self._nrf_write_reg(NRF24.RX_PW_P4, self._payload_size)
+            self._nrf_write_reg(NRF24.RX_PW_P5, self._payload_size)
             self._nrf_write_reg(NRF24.DYNPD, 0)
             self._nrf_write_reg(NRF24.FEATURE, 0)
         else:                                                           # dynamic payload
             self._nrf_write_reg(NRF24.RX_PW_P0, 0)
             self._nrf_write_reg(NRF24.RX_PW_P1, 0)
+            self._nrf_write_reg(NRF24.RX_PW_P2, 0)
+            self._nrf_write_reg(NRF24.RX_PW_P3, 0)
+            self._nrf_write_reg(NRF24.RX_PW_P4, 0)
+            self._nrf_write_reg(NRF24.RX_PW_P5, 0)
             self._nrf_write_reg(NRF24.DYNPD, NRF24.DPL_P0 | NRF24.DPL_P1 | NRF24.DPL_P2 | NRF24.DPL_P3 | NRF24.DPL_P4 | NRF24.DPL_P5 | NRF24.DPL_P6 | NRF24.DPL_P7)
             if self._payload_size == RF24_PAYLOAD.ACK: 
                 self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY)

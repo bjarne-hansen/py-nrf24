@@ -145,7 +145,7 @@ class SPI_CHANNEL(IntEnum):
             raise ValueError(f'Value {value} is not a SPI_CHANNEL value.')
 
         elif isinstance(value, str):
-            for e in RF24_PAYLOAD:
+            for e in SPI_CHANNEL:
                 if value.lower() == e.name.lower():
                     return e                    
             raise ValueError(f'Value {value} is not a SPI_CHANNEL name.')

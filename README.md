@@ -6,7 +6,15 @@ The code is based on a modified version of some example code found on [StackExch
 
 I have obtained the original authors approval to modify and distribute the code anyway I want.  So, I have created a very basic Python package and published it on PyPI under a MIT license.
 
-The ```nrf24``` packages depends on the ```pigpio``` package that is available via PyPI as well.
+The ```nrf24``` packages depends on the ```pigpio``` package that is available via PyPI as well.  Before installing and running any of the code and examples below, please make sure you the ```pigpid``` daemon running on your Raspberry.  This is a library/server that provides access to the GPIO ports of the Raspberry.
+
+Details avalable at http://abyz.me.uk/rpi/pigpio/download.html
+
+Quick installation on Raspbian:
+
+    sudo apt-get update    
+    sudo apt-get install pigpio python-pigpio python3-pigpio
+
 
 ## Installing
 

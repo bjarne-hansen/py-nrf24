@@ -24,14 +24,21 @@ if __name__ == "__main__":
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
 
-    # Define addresses to send to.
+    # Define addresses to send to (see test/multi-rcvr.py).
     addresses = [
-        [0x01, 0xCE, 0xFA, 0xBE, 0xBA], 
-        [0x02, 0xCE, 0xFA, 0xBE, 0xBA]
+        [0x01, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #1, Pipe #1 
+        [0x06, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #2, Pipe #1
+        [0x02, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #1, Pipe #2
+        [0x07, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #2, Pipe #2
+        [0x03, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #1, Pipe #3
+        [0x08, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #2, Pipe #3
+        [0x04, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #1, Pipe #4
+        [0x09, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #2, Pipe #4
+        [0x05, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #1, Pipe #5
+        [0x0A, 0xCE, 0xFA, 0xBE, 0xBA],     # Module #2, Pipe #5
         ]
-
-    # Wait for device to settle and display the content of device registers.
-    time.sleep(0.5)
+    
+    # Show configuration.
     nrf.show_registers()
 
     # Start by sending to the address at index 0.
@@ -57,15 +64,11 @@ if __name__ == "__main__":
         print(f"{now:%Y-%m-%d %H:%M:%S.%f}: address: {addr_hex}, bytes: {len(payload)}, payload: {payload_hex}")
             
         # Send the payload.
-        
-        nrf.flush_tx()
         nrf.send(payload)
         
-        
-        
-        # Get index of next address (wrap and start over if we have sent to all addresses).
+        # Get index of next address (wrap and start over if index surpasses last address).
         address_index = (address_index + 1) % len(addresses)
         
-        # Sleep 10 seconds before sending the next message.
-        time.sleep(10)
+        # Wait some seconds before sending the next message.
+        time.sleep(5)
         

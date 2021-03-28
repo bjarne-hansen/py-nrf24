@@ -5,3 +5,4 @@ __pycache__
 /dist
 /nrf24.egg-info
 /src/nrf24.egg-info
+.vscode/**

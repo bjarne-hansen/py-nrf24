@@ -17,7 +17,8 @@ from os import environ as env
 def receive_data(nrf):
     
     while nrf.data_ready():
-        # Get a timestamp.
+
+        # Data is availble for reading, get a timestamp.
         now = datetime.now()        
 
         # Get the pipe that data was received on. This can be "translated" to the address
@@ -58,7 +59,7 @@ if __name__ == "__main__":
     nrf1.open_reading_pipe(RF24_RX_ADDR.P4, [0x04, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf1.open_reading_pipe(RF24_RX_ADDR.P5, [0x05, 0xCE, 0xFA, 0xBE, 0xBA])
 
-    # Dirty trick ...
+    # Store an attribute on the NRF24 object stating what transceiver it is ... a little dirty ...
     nrf1.tranceiver = "#1"
 
     # Create transceiver #1 using GPIO 12 as CE.
@@ -71,11 +72,10 @@ if __name__ == "__main__":
     nrf2.open_reading_pipe(RF24_RX_ADDR.P4, [0x09, 0xCE, 0xFA, 0xBE, 0xBA])
     nrf2.open_reading_pipe(RF24_RX_ADDR.P5, [0x0A, 0xCE, 0xFA, 0xBE, 0xBA])
 
-    # Dirty trick ...
+    # Store an attribute on the NRF24 object stating what transceiver it is ... a little dirty ...
     nrf2.tranceiver = "#2"
 
-    # Sleep a little to let transceivers settle, and then show registers for both.
-    time.sleep(0.5)
+    # Show registers for both transceivers.
     nrf1.show_registers()
     nrf2.show_registers()
 

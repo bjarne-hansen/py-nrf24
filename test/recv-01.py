@@ -5,9 +5,16 @@ from nrf24 import *
 import struct
 from os import environ as env
 
+#
+# A simple NRF24L01 receiver script that receives data on 4 different addresses
+# and prints result on screen.  Please note that this receiver emulates a 
+# small NRF24L01 gateway which looks at the first byte in the payload to determine
+# what data is being sent.
+#
+
 if __name__ == "__main__":
 
-    print("Python NRF24 Receiver 01")
+    print("Python NRF24 Receiver Example 01 ...")
     
     # Connect to pigpiod
     print("Connecting to:", env.get('PIGPIO_HOST', 'localhost'), env.get('PIGPIO_PORT', 8888))

@@ -1,0 +1,11 @@
+
+
+- ADDED: get_writing_address()
+- ADDED: get_reading_address(pipe)
+- REMOVED: set_local_address(address) - use open_reading_pipe instead.
+- REMOVED: set_remote_address(address) - use open_writing_pipe instead.
+- REMOVED: from_config( ... ) - write your own configuration code.
+- ADDED: get_retries()
+- ADDED: get_packages_lost()
+- ADDED: reset_packages_lost()
+

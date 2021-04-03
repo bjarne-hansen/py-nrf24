@@ -197,46 +197,46 @@ class NRF24:
     TX = 0
     RX = 1
 
-    @staticmethod
-    def from_config(config, pi=None, pigpio_section='pigpio', nrf24_section='nrf24'):
+    # @staticmethod
+    # def from_config(config, pi=None, pigpio_section='pigpio', nrf24_section='nrf24'):
         
 
-        # Get pigpio configuration.
-        if pi is None:
-            host = config[pigpio_section].get('host', env.get('PIGPIO_HOST', 'localhost'))
-            port = config[pigpio_section].getint('port', env.get('PIGPIO_PORT', 8888))
-            pi = pigpio.pi(host, port)
+    #     # Get pigpio configuration.
+    #     if pi is None:
+    #         host = config[pigpio_section].get('host', env.get('PIGPIO_HOST', 'localhost'))
+    #         port = config[pigpio_section].getint('port', env.get('PIGPIO_PORT', 8888))
+    #         pi = pigpio.pi(host, port)
     
-        # Get nrf24 configuration
-        ce_pin = config[nrf24_section].getint('ce_pin', 25)
-        spi_channel = SPI_CHANNEL.from_value(config[nrf24_section].get('spi_channel', SPI_CHANNEL.MAIN_CE0))
-        spi_speed = config[nrf24_section].getint('spi_speed', 50e4)
-        data_rate = RF24_DATA_RATE.from_value(config['nrf24'].get('data_rate', RF24_DATA_RATE.RATE_1MBPS))
-        channel = config[nrf24_section].getint('channel', 76)
-        payload_size = RF24_PAYLOAD.from_value(config[nrf24_section].get('payload_size', RF24_PAYLOAD.MAX))
-        address_bytes = config[nrf24_section].getint('address_size', 5)
-        crc_bytes = RF24_CRC.from_value(config[nrf24_section].getint('address_size', RF24_CRC.BYTES_2))
-        pad = config[nrf24_section].getint('pad', 32)
+    #     # Get nrf24 configuration
+    #     ce_pin = config[nrf24_section].getint('ce_pin', 25)
+    #     spi_channel = SPI_CHANNEL.from_value(config[nrf24_section].get('spi_channel', SPI_CHANNEL.MAIN_CE0))
+    #     spi_speed = config[nrf24_section].getint('spi_speed', 50e4)
+    #     data_rate = RF24_DATA_RATE.from_value(config['nrf24'].get('data_rate', RF24_DATA_RATE.RATE_1MBPS))
+    #     channel = config[nrf24_section].getint('channel', 76)
+    #     payload_size = RF24_PAYLOAD.from_value(config[nrf24_section].get('payload_size', RF24_PAYLOAD.MAX))
+    #     address_bytes = config[nrf24_section].getint('address_size', 5)
+    #     crc_bytes = RF24_CRC.from_value(config[nrf24_section].getint('address_size', RF24_CRC.BYTES_2))
+    #     pad = config[nrf24_section].getint('pad', 32)
 
-        nrf = NRF24(pi, ce=ce_pin, spi_channel=spi_channel, spi_speed=spi_speed,data_rate=data_rate,channel=channel,payload_size=payload_size,address_bytes=address_bytes,crc_bytes=crc_bytes,pad=pad)
+    #     nrf = NRF24(pi, ce=ce_pin, spi_channel=spi_channel, spi_speed=spi_speed,data_rate=data_rate,channel=channel,payload_size=payload_size,address_bytes=address_bytes,crc_bytes=crc_bytes,pad=pad)
 
-        if config[nrf24_section].get('tx_addr', None) is not None:
-            nrf.open_writing_pipe(config[nrf24_section].get('tx_addr', None))
+    #     if config[nrf24_section].get('tx_addr', None) is not None:
+    #         nrf.open_writing_pipe(config[nrf24_section].get('tx_addr', None))
         
-        if config[nrf24_section].get('rx_addr_0', None) is not None:
-            nrf.open_reading_pipe(0, config[nrf24_section].get('rx_addr_0', None))
-        if config[nrf24_section].get(nrf24_section, None) is not None:
-            nrf.open_reading_pipe(1, config[nrf24_section].get('rx_addr_1', None))
-        if config[nrf24_section].get('rx_addr_2', None) is not None:
-            nrf.open_reading_pipe(2, config[nrf24_section].get('rx_addr_2', None))
-        if config[nrf24_section].get('rx_addr_3', None) is not None:
-            nrf.open_reading_pipe(3, config[nrf24_section].get('rx_addr_3', None))
-        if config[nrf24_section].get('rx_addr_4', None) is not None:
-            nrf.open_reading_pipe(4, config[nrf24_section].get('rx_addr_4', None))
-        if config[nrf24_section].get('rx_addr_5', None) is not None:
-            nrf.open_reading_pipe(5, config[nrf24_section].get('rx_addr_5', None))
+    #     if config[nrf24_section].get('rx_addr_0', None) is not None:
+    #         nrf.open_reading_pipe(0, config[nrf24_section].get('rx_addr_0', None))
+    #     if config[nrf24_section].get(nrf24_section, None) is not None:
+    #         nrf.open_reading_pipe(1, config[nrf24_section].get('rx_addr_1', None))
+    #     if config[nrf24_section].get('rx_addr_2', None) is not None:
+    #         nrf.open_reading_pipe(2, config[nrf24_section].get('rx_addr_2', None))
+    #     if config[nrf24_section].get('rx_addr_3', None) is not None:
+    #         nrf.open_reading_pipe(3, config[nrf24_section].get('rx_addr_3', None))
+    #     if config[nrf24_section].get('rx_addr_4', None) is not None:
+    #         nrf.open_reading_pipe(4, config[nrf24_section].get('rx_addr_4', None))
+    #     if config[nrf24_section].get('rx_addr_5', None) is not None:
+    #         nrf.open_reading_pipe(5, config[nrf24_section].get('rx_addr_5', None))
 
-        return nrf, pi
+    #     return nrf, pi
 
 
     def __init__(self,
@@ -442,12 +442,10 @@ class NRF24:
             return msg
 
     def send(self, data):
-
         # We expect a list of byte values to be sent.  However, popular types
         # such as string, integer, bytes, and bytearray are handled automatically using
         # this conversion code.
         if not isinstance(data, list):
-
             if isinstance(data, str):
                 data = list(map(ord, data))
             elif isinstance(data, int):
@@ -464,6 +462,20 @@ class NRF24:
 
         self._nrf_command([self.W_TX_PAYLOAD] + data)
         self.power_up_tx()
+
+
+    def get_retries(self):
+        v = self._nrf_read_reg(NRF24.OBSERVE_TX, 1)[0]
+        arc = v & 15
+        return arc
+
+    def get_packages_lost(self):
+        v = self._nrf_read_reg(NRF24.OBSERVE_TX, 1)[0]
+        plos = (v >> 4) & 15
+        return plos
+
+    def reset_packages_lost(self):
+        self.reset_plos()
 
     # Added 2020-05-01, Bjarne Hansen
     def reset_plos(self):
@@ -483,6 +495,9 @@ class NRF24:
         self._nrf_write_reg(self.TX_ADDR, addr)
         self._nrf_write_reg(self.RX_ADDR_P0, addr)
         self.set_ce()
+
+    def get_writing_address(self):
+        return self._nrf_read_reg(NRF24.TX_ADDR, 5)
 
     def open_reading_pipe(self, pipe, address):
         # pipe: RX_ADDR_P0, RX_ADDR_P1, RX_ADDR_P2, RX_ADDR_P3, RX_ADDR_P4, RX_ADDR_P5
@@ -511,19 +526,40 @@ class NRF24:
         self._nrf_write_reg(pipe, addr)
         self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)        
         self.set_ce()
-        
-    def set_local_address(self, address):
-        addr = self._make_fixed_width(address, self._address_width, self._padding)
-        self.unset_ce()
-        self._nrf_write_reg(NRF24.RX_ADDR_P1, addr)
-        self.set_ce()
 
-    def set_remote_address(self, raddr):
-        addr = self._make_fixed_width(raddr, self._address_width, self._padding)
-        self.unset_ce()
-        self._nrf_write_reg(self.TX_ADDR, addr)
-        self._nrf_write_reg(self.RX_ADDR_P0, addr)      # Required for automatic acknowledgements.
-        self.set_ce()
+    def get_reading_address(self, pipe):
+        # Validate pipe input.
+        if not (isinstance(pipe, int) or isinstance(pipe, RF24_RX_ADDR)):
+            raise ValueError(f"pipe must be int or RF24_RX_ADDR enum.")
+        
+        # If a pipe is given as 0..5 add the 0x0a value corresponding to RX_ADDR_P0
+        if (pipe >= 0 and pipe <= 5):
+            pipe = pipe + NRF24.RX_ADDR_P0
+
+        if (pipe < NRF24.RX_ADDR_P0 or pipe > NRF24.RX_ADDR_P5):
+            raise ValueError(f"pipe out of range ({NRF24.RX_ADDR_P0:02x} <= pipe <= and {NRF24.RX_ADDR_P5:02x}).")
+
+        if (pipe >= NRF24.RX_ADDR_P0 and pipe <= NRF24.RX_ADDR_P1):
+            return self._nrf_read_reg(pipe, 5)
+        else:
+            p1 = self._nrf_read_reg(RF24_RX_ADDR.P1, 5)
+            b = self._nrf_read_reg(pipe, 1)[0]
+            p1[0] = b
+            return p1
+
+
+    #def set_local_address(self, address):
+    #    addr = self._make_fixed_width(address, self._address_width, self._padding)
+    #    self.unset_ce()
+    #    self._nrf_write_reg(NRF24.RX_ADDR_P1, addr)
+    #    self.set_ce()
+
+    #def set_remote_address(self, raddr):
+    #    addr = self._make_fixed_width(raddr, self._address_width, self._padding)
+    #    self.unset_ce()
+    #    self._nrf_write_reg(self.TX_ADDR, addr)
+    #    self._nrf_write_reg(self.RX_ADDR_P0, addr)      # Required for automatic acknowledgements.
+    #    self.set_ce()
 
     def data_ready_pipe(self):
         status = self.get_status()
@@ -567,6 +603,7 @@ class NRF24:
         return False
 
     def get_payload(self):
+
         if self._payload_size < RF24_PAYLOAD.MIN: 
             # dynamic payload
             bytes_count = self._nrf_command([self.R_RX_PL_WID, 0])[1]

@@ -4,6 +4,8 @@ from datetime import datetime
 from nrf24 import *
 import struct
 from os import environ as env
+import argparse
+import sys
 
 #
 # A simple NRF24L01 receiver script that receives data on 6 different addresses
@@ -14,30 +16,36 @@ from os import environ as env
 
 if __name__ == "__main__":
 
-    print("Python NRF24 receiver example #1 ...")
+    print("Python NRF24 Simple Receiver Example.")
     
+    # Parse command line argument.
+    parser = argparse.ArgumentParser(prog="simple-receiver.py", description="Simple NRF24 receiver.")
+    parser.add_argument('-h' '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
+    parser.add_argument('-p' '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
+    parser.add_argument('address', type=str, default='1SNSR', help="Address to listen to (1 to 5 characters).")
+    
+    args = parser.parse_args()
+    hostname = args.hostname
+    port = args.port
+    address = args.address
+
+    if not (len(address) > 0 and len(address) < 6):
+        print(f'ERROR: invalid address {address}')
+        sys.exit(1)
+
     # Connect to pigpiod
-    print("Connecting to:", env.get('PIGPIO_HOST', 'localhost'), env.get('PIGPIO_PORT', 8888))
-    pi = pigpio.pi(env.get('PIGPIO_HOST', 'localhost'), env.get('PIGPIO_PORT', 8888))
+    print(f'Connecting to GPIO daemon on {hostname}:{port} ...')
+    pi = pigpio.pi(hostname, port)
     if not pi.connected:
-        print("Not connected to Raspberry PI...goodbye.")
+        print("Not connected to Raspberry Pi ... goodbye.")
         exit()
 
     # Create NRF24L01 communication object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
     
-    # Listen on a bunch of adresses.
-    # PLEASE NOTE:
-    # ------------
-    # Listering on pipe 0 means that we cannot use this transceiver for sending 
-    # with acknowledgement as pipe 0 (RF24_RX_ADDR.P0) is the acknowledgement 
-    # address when sending.
-    nrf.open_reading_pipe(RF24_RX_ADDR.P1, [0x01, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P2, [0x02, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P3, [0x03, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P4, [0x04, 0xCE, 0xFA, 0xBE, 0xBA])
-    nrf.open_reading_pipe(RF24_RX_ADDR.P5, [0x05, 0xCE, 0xFA, 0xBE, 0xBA])
-
+    # Listen on the address specified as parameter
+    nrf.open_reading_pipe(RF24_RX_ADDR.P1, )
+    
     # Display the content of NRF24L01 device registers.
     nrf.show_registers()
 
@@ -86,5 +94,5 @@ if __name__ == "__main__":
                 except:
                     print(f"{now:%Y-%m-%d %H:%M:%S.%f}: Exception while unpacking payload of {len(payload)} bytes using {fmt}.")
 
-        # Sleep 500 ms.
-        time.sleep(0.5)
+        # Sleep 100 ms.
+        time.sleep(0.1)

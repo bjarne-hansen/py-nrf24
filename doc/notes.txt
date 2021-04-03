@@ -1,36 +1,61 @@
+
+
+RF24_PA                         - Enumeration of PA values.
+RF24_DATA_RATE                  - Enumeration of data rates.
+RF24_CRC                        - Enumeration of CRC options.
+RF24_PAYLOAD                    - Enumeration of payload options.
+SPI_CHANNEL                     - Enumeration of SPI channels.
+RF24_RX_ADDR                    - Enumeration of NRF24L01 receiver channels (pipes).
+
+from_config()                   - DEPRECATED
+
 __init__
 
 set_channel(channel)
 set_payload_size(size)
-set_padding(padding)        # Padding 
-set_address_bytes(bytes)    # Address width
+set_padding(padding)
+set_address_bytes(bytes)
 set_crc_bytes(bytes)
 set_data_rate(rate)
 set_pa_level(level)
-get_pa_level()
+get_pa_level()              
 
 get_spi_handle()
 show_registers()
-send(message)
-reset_plos()
-ack_payload()
-open_writing_pipe(addr)
-open_reading_pipe(pipe, addr)
-set_local_address(address)
-set_remote_address(address)
-data_ready_pipe(pipe)
-data_pipe()
-data_ready()
-is_sending()
-get_payload()
-get_status()
-power_up_tx()
-power_up_rx()
-power_down()
-set_ce()
-unset_ce()
-flush_rx()
-flush_tx()
+
+send(message)                   - Send message.
+get_retries()                   - Get number of retries.
+get_packages_lost()             - Get number of packages lost (since the counter was last reset)
+reset_packages_lost()           - Reset number of packages lost to 0.
+reset_plos()                    - Reset number of packages lost to 0.
+ack_payload()                   - Send acknowledgement payload.
+
+open_writing_pipe(addr)         - Open writing pipe.
+get_writing_address()           - Get the writing address.
+
+open_reading_pipe(pipe, addr)   - Open reading pipe (pipe [0..5] || [NRF24_RX_ADDR.P0..NRF24_RX_ADDR.P5])
+get_reading_address(pipe)       - Get the reading address for the pipe specified.
+
+
+set_local_address(address)      - DEPRECATED
+set_remote_address(address)     - DEPRECATED
+
+data_ready_pipe()               - Get (boolean, pipe) telling if data is ready, and on what pipe.
+data_pipe()                     - Get pipe that has data ready.
+data_ready()                    - Get boolean indicating if data is ready.
+is_sending()                    - Boolean indicating of the module is sending.
+get_payload()                   - Get the payload available.
+get_status()                    - ?????????
+
+power_up_tx()                   - ?????????
+power_up_rx()                   - ?????????
+power_down()                    - ?????????
+
+set_ce()                        - Set CE PIN high. 
+unset_ce()                      - Set CE PIN low.
+
+flush_rx()                      - Flush read buffers.
+flush_tx()                      - Flush write buffers.
 
 format_config()
 format_en_aa()

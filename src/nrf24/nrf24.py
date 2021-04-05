@@ -310,8 +310,9 @@ class NRF24:
     def set_retransmission(self, delay, retries):
         assert 0 <= delay < 16, "Delay must be between 0 and 15."
         assert 0 <= retries < 16, "Retries must be between 0 and 15." 
+        
         self.unset_ce()
-        self._nrf_write_reg(self.SETUP_RETR, (delay << 4) & retries)
+        self._nrf_write_reg(self.SETUP_RETR, ((delay << 4) | retries))
         self.set_ce()
 
 

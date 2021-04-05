@@ -18,8 +18,8 @@ if __name__ == "__main__":
     
     # Parse command line argument.
     parser = argparse.ArgumentParser(prog="simple-sender.py", description="Simple NRF24 transmitter.")
-    parser.add_argument('-h' '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
-    parser.add_argument('-p' '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
+    parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
+    parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
     parser.add_argument('address', type=str, default='1SNSR', help="Address to listen to (1 to 5 characters).")
     
     args = parser.parse_args()

@@ -45,7 +45,6 @@ if __name__ == "__main__":
 
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
-    nrf.set_address_bytes(len(address))
     
     # Take a small break to let tranceiver settle and then show registers of the NRF24L01 device.
     time.sleep(0.5)

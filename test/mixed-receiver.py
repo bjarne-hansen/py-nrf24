@@ -45,7 +45,6 @@ if __name__ == "__main__":
 
     # Create NRF24L01 communication object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
-    nrf.set_address_bytes(len(address))
 
     # Listen of first address with 9 bytes as payload size.
     nrf.open_reading_pipe(RF24_RX_ADDR.P1, address[0], size=9)

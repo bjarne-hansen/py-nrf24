@@ -9,8 +9,9 @@ import argparse
 import sys
 
 #
-# A simple NRF24L01 sender script that pretends to be a soil mosture and humidity
-# sensor sending data that can be received by test/rcvr-01.py.
+# A simple NRF24L sender that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
+# starts sending data on the address specified.  Use the companion program "simple-receiver.py" to receive the data
+# from it on a different Raspberry Pi.
 #
 if __name__ == "__main__":    
     print("Python NRF24 Simple Sender Example.")
@@ -26,8 +27,8 @@ if __name__ == "__main__":
     port = args.port
     address = args.address
 
-    if not (len(address) > 0 and len(address) < 6):
-        print(f'ERROR: invalid address {address}')
+    if not (2 < len(address) < 6):
+        print(f'Invalid address {address}. Addresses must be 3 to 5 ASCII characters.')
         sys.exit(1)
 
     # Connect to pigpiod
@@ -39,8 +40,9 @@ if __name__ == "__main__":
 
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
+    nrf.set_address_bytes(len(address))
     nrf.open_writing_pipe(address)
-
+    
     # Take a small break to let tranceiver settle and then show registers of the NRF24L01 device.
     time.sleep(0.5)
     nrf.show_registers()
@@ -57,7 +59,7 @@ if __name__ == "__main__":
 
         # Pack temperature and humidity into a byte buffer (payload) using a protocol 
         # signature of 0x01 so that the receiver knows that the bytes we are sending 
-        # are a temperature and a humidity (see rcvr-01.py).
+        # are a temperature and a humidity (see "simple-receiver.py").
         payload = struct.pack("<Bff", 0x01, temperature, humidity)
 
         # Send the payload to the address specified above.

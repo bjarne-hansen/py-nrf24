@@ -70,21 +70,25 @@ class RF24_CRC(IntEnum):
 
     @staticmethod
     def from_value(value):
+        
         if value is None:
             raise ValueError(f'"None" is not a RF24_CRC value.')
 
         if isinstance(value, RF24_CRC):
             return value
+
         elif isinstance(value, int):
             for e in RF24_CRC:
                 if value == e.value:
                     return e
             raise ValueError(f'Value {value} is not a RF24_CRC value.')
+
         elif isinstance(value, str):
             for e in RF24_CRC:
                 if value.lower() == e.name.lower():
                     return e
             raise ValueError(f'Value {value} is not a RF24_CRC name.')
+
         else:
             raise ValueError(f'{value} ({type(value)}) is not an RF24_CRC value.')
 
@@ -164,6 +168,8 @@ class RF24_RX_ADDR(IntEnum):
     P5 = 0x0f
 
 
+
+
 class NRF24:
     """
     Note that RX and TX addresses must match
@@ -197,48 +203,7 @@ class NRF24:
     TX = 0
     RX = 1
 
-    # @staticmethod
-    # def from_config(config, pi=None, pigpio_section='pigpio', nrf24_section='nrf24'):
-        
-
-    #     # Get pigpio configuration.
-    #     if pi is None:
-    #         host = config[pigpio_section].get('host', env.get('PIGPIO_HOST', 'localhost'))
-    #         port = config[pigpio_section].getint('port', env.get('PIGPIO_PORT', 8888))
-    #         pi = pigpio.pi(host, port)
     
-    #     # Get nrf24 configuration
-    #     ce_pin = config[nrf24_section].getint('ce_pin', 25)
-    #     spi_channel = SPI_CHANNEL.from_value(config[nrf24_section].get('spi_channel', SPI_CHANNEL.MAIN_CE0))
-    #     spi_speed = config[nrf24_section].getint('spi_speed', 50e4)
-    #     data_rate = RF24_DATA_RATE.from_value(config['nrf24'].get('data_rate', RF24_DATA_RATE.RATE_1MBPS))
-    #     channel = config[nrf24_section].getint('channel', 76)
-    #     payload_size = RF24_PAYLOAD.from_value(config[nrf24_section].get('payload_size', RF24_PAYLOAD.MAX))
-    #     address_bytes = config[nrf24_section].getint('address_size', 5)
-    #     crc_bytes = RF24_CRC.from_value(config[nrf24_section].getint('address_size', RF24_CRC.BYTES_2))
-    #     pad = config[nrf24_section].getint('pad', 32)
-
-    #     nrf = NRF24(pi, ce=ce_pin, spi_channel=spi_channel, spi_speed=spi_speed,data_rate=data_rate,channel=channel,payload_size=payload_size,address_bytes=address_bytes,crc_bytes=crc_bytes,pad=pad)
-
-    #     if config[nrf24_section].get('tx_addr', None) is not None:
-    #         nrf.open_writing_pipe(config[nrf24_section].get('tx_addr', None))
-        
-    #     if config[nrf24_section].get('rx_addr_0', None) is not None:
-    #         nrf.open_reading_pipe(0, config[nrf24_section].get('rx_addr_0', None))
-    #     if config[nrf24_section].get(nrf24_section, None) is not None:
-    #         nrf.open_reading_pipe(1, config[nrf24_section].get('rx_addr_1', None))
-    #     if config[nrf24_section].get('rx_addr_2', None) is not None:
-    #         nrf.open_reading_pipe(2, config[nrf24_section].get('rx_addr_2', None))
-    #     if config[nrf24_section].get('rx_addr_3', None) is not None:
-    #         nrf.open_reading_pipe(3, config[nrf24_section].get('rx_addr_3', None))
-    #     if config[nrf24_section].get('rx_addr_4', None) is not None:
-    #         nrf.open_reading_pipe(4, config[nrf24_section].get('rx_addr_4', None))
-    #     if config[nrf24_section].get('rx_addr_5', None) is not None:
-    #         nrf.open_reading_pipe(5, config[nrf24_section].get('rx_addr_5', None))
-
-    #     return nrf, pi
-
-
     def __init__(self,
                  pi,                                    # pigpio Raspberry PI connection
                  ce,                                    # GPIO for chip enable
@@ -251,7 +216,8 @@ class NRF24:
                  payload_size=RF24_PAYLOAD.MAX,         # Message size in bytes (default: 32)
                  address_bytes=5,                       # RX/TX address length in bytes
                  crc_bytes=RF24_CRC.BYTES_2,            # Number of CRC bytes
-                 pad=32                                 # Value used to pad short messages
+                 pad=32,                                # Value used to pad short messages
+                 pa_level=RF24_PA.MAX
                  ):
 
         """
@@ -291,50 +257,83 @@ class NRF24:
             # Aux SPI.
             self._spi_handle = pi.spi_open(spi_channel - SPI_CHANNEL.AUX_CE0, int(spi_speed), NRF24._AUX_SPI)
 
-        # NRF data rate
-        self._data_rate = data_rate
-        self.set_data_rate(data_rate)
-
         # NRF channel (0-125)
-        self._channel = 0
         self.set_channel(channel)
 
+        # Set default retransmissions to 15 retransmits @ 500µs.
+        # Delay between retransmissions is calculated as (delay + 1) * 250 µs, so values will be in range
+        # (0 + 1) * 250 = 250 µs to (15 + 1) * 250 = 4000 µs (or 4 ms)
+        self.set_retransmission(1, 15)
+
         # NRF Payload size. -1 = Acknowledgement payload, 0 = Dynamic payload size, 1 - 32 = Payload size in bytes.
-        self._payload_size = 0
+        # This ONLY sets the default payload size. The actual payload size it set in open_reading_pipe.
         self.set_payload_size(payload_size)
 
+        # Padding for messages.
+        self._padding = ord(' ')
+        self.set_padding(pad)
+
         # NRF Address width in bytes. Shorter addresses will be padded using the padding above.
-        self._address_width = 5
         self.set_address_bytes(address_bytes)
 
         # NRF CRC bytes. Range 0 - 2.
-        self._crc_bytes = 1
         self.set_crc_bytes(crc_bytes)
 
-        # Padding for messages and addresses.
-        self._padding = ord(' ')
-        self.set_padding(pad)
+        # NRF data rate
+        self.set_data_rate(data_rate)
+
+        # Set PA level.
+        self.set_pa_level(pa_level)
 
         # NRF Power Tx
         self._power_tx = 0
 
-        # Initialize NRF.
-        self.power_down()
-        self._nrf_write_reg(self.SETUP_RETR, 0b11111)
-        self.flush_rx()
-        self.flush_tx()
-        self.power_up_rx()
+        # Initialize NRF to be in RX mode.
+        self.power_down()                   # Power down the NRF24L01
+        self.flush_rx()                     # Flush RX FIFO.
+        self.flush_tx()                     # Flush TX FIFO.
+        self.power_up_rx()                  # Power up and enter RX mode.
+
 
     def set_channel(self, channel):
         assert 0 <= channel <= 125
-        self._channel = channel  # frequency (2400 + channel) MHz
-        self._nrf_write_reg(self.RF_CH, self._channel)
+        # frequency (2400 + channel) MHz
+        self.unset_ce()
+        self._nrf_write_reg(self.RF_CH, channel)
+        self.set_ce()
 
-    def set_payload_size(self, payload):
-        assert RF24_PAYLOAD.ACK <= payload <= RF24_PAYLOAD.MAX
-        self._payload_size = payload  # 0 is dynamic payload
-        self._configure_payload()
 
+    def get_channel(self):
+        return self._nrf_read_reg(self.RF_CH, 1)[0]
+
+
+    def set_retransmission(self, delay, retries):
+        assert 0 <= delay < 16, "Delay must be between 0 and 15."
+        assert 0 <= retries < 16, "Retries must be between 0 and 15." 
+        self.unset_ce()
+        self._nrf_write_reg(self.SETUP_RETR, (delay << 4) & retries)
+        self.set_ce()
+
+
+    def get_retransmission(self):
+        setup_retr = self._nrf_read_reg(self.SETUP_RETR, 1)[0]
+        delay = (setup_retr & (15 << 4)) >> 4
+        retries = (setup_retr & 15)
+        return (delay, retries)
+
+
+    def set_payload_size(self, payload_size): 
+        # RF24_PAYLOAD.ACK = -1, RF24_PAYLOAD.DYNAMIC = 0, RF24_PAYLOAD.MIN = 1, RF24_PAYLOAD.MAX = 32
+        assert RF24_PAYLOAD.ACK <= payload_size <= RF24_PAYLOAD.MAX
+        self._payload_size = payload_size
+        #self._configure_payload()
+
+
+    def get_payload_size(self):
+        return self._payload_size
+
+
+    # TODO: Padding should not be necessary.
     def set_padding(self, pad):
         try:
             self._padding = ord(pad)
@@ -342,22 +341,77 @@ class NRF24:
             self._padding = pad
         assert 0 <= self._padding <= 255
 
+
     def set_address_bytes(self, address_bytes):
-        assert 3 <= address_bytes <= 5
+        assert 3 <= address_bytes <= 5, "Number of address bytes must be between 3 and 5."
         self._address_width = address_bytes
+        self.unset_ce()
         self._nrf_write_reg(self.SETUP_AW, self._address_width - 2)
+        self.set_ce()
+
+
+    def get_address_bytes(self):
+        return  self._nrf_read_reg(self.SETUP_AW, 1)[0] + 2
+
+
+    def disable_crc(self):
+        config = self._nrf_read_reg(self.CONFIG, 1)[0]
+        mask = ~self.EN_CRC & 0xFF
+        self.unset_ce()
+        self._nrf_write_reg(self.CONFIG, config & mask)
+        self.set_ce()
+
+
+    def enable_crc(self):
+        config = self._nrf_read_reg(self.CONFIG, 1)[0]
+        self.unset_ce()
+        self._nrf_write_reg(self.CONFIG, config | self.EN_CRC)
+        self.set_ce()
+
+
+    def is_crc_enabled(self):
+        config = self._nrf_read_reg(self.CONFIG, 1)[0]
+        if config & self.EN_CRC:
+            return True
+        else:
+            return False
+
 
     def set_crc_bytes(self, crc_bytes):
-        assert 1 <= crc_bytes <= 2
-        if crc_bytes == 1:
-            self._crc_bytes = 0
+        assert RF24_CRC.DISABLED <= crc_bytes <= RF24_CRC.BYTES_2
+
+        if crc_bytes == RF24_CRC.DISABLED:
+            self.disable_crc()
         else:
-            self._crc_bytes = self.CRCO
+            if crc_bytes == RF24_CRC.BYTES_1:
+                config = self._nrf_read_reg(self.CONFIG, 1)[0]
+                mask = ~self.CRCO & 0xFF
+                new_config = config & mask
+                self.unset_ce()
+                self._nrf_write_reg(self.CONFIG, new_config)
+                self.set_ce()
+            else:
+                config = self._nrf_read_reg(self.CONFIG, 1)[0]
+                mask = self.CRCO
+                new_config = config | mask
+                self.unset_ce()
+                self._nrf_write_reg(self.CONFIG, new_config)
+                self.set_ce()
+
+
+    def get_crc_bytes(self):    
+        config = self._nrf_read_reg(self.CONFIG, 1)[0]
+        if config & self.EN_CRC:
+            return RF24_CRC.DISABLED
+        else:
+            if config & self.CRCO:
+                return RF24_CRC.BYTES_2
+            else:
+                return RF24_CRC.BYTES_1
+
 
     def set_data_rate(self, rate):
-        # RF24_1MBPS   = 0
-        # RF24_2MBPS   = 1
-        # RF24_250KBPS = 2
+        # RF24_1MBPS = 0, RF24_2MBPS = 1, RF24_250KBPS = 2.
         assert RF24_DATA_RATE.RATE_1MBPS <= rate <= RF24_DATA_RATE.RATE_250KBPS
 
         # Read current setup value from register.
@@ -367,23 +421,31 @@ class NRF24:
         value &= ~(NRF24.RF_DR_LOW | NRF24.RF_DR_HIGH)
 
         # Set the RF_DR_LOW bit if speed is 250 Kbps
-        if rate == RF24_DATA_RATE.RATE_250KBPS: # WAS NRF24.RF24_250KBPS:
+        if rate == RF24_DATA_RATE.RATE_250KBPS: 
             value |= NRF24.RF_DR_LOW
         # Set the RF_DR_HIGH bit if speed is 2 Mbps
-        elif rate == RF24_DATA_RATE.RATE_2MBPS: # WAS:NRF24.RF24_2MBPS:
+        elif rate == RF24_DATA_RATE.RATE_2MBPS: 
             value |= NRF24.RF_DR_HIGH
 
         # Write value back to setup register.
+        self.unset_ce()
         self._nrf_write_reg(self.RF_SETUP, value)
+        self.set_ce()
 
+
+    def get_data_rate(self):
+        # Read value of RF_SETUP.
+        rf_setup = self._nrf_read_reg(self.RF_SETUP, 1)[0]
+
+        # Calculate rate from 2 bits.
+        rate = ((rf_setup & NRF24.RF_DR_LOW) >> 4) & ((rf_setup & NRF24.RF_DR_HIGH) >> 3)
+
+        # Return the corresponding enumeration value.
+        return RF24_DATA_RATE.from_value(rate)
+        
+        
     def set_pa_level(self, level):
-        #uint8_t setup = read_register(RF_SETUP) & 0xF8
-        #if (level > 3) {                        // If invalid level, go to max PA
-        #    level = (RF24_PA_MAX << 1) + 1;        // +1 to support the SI24R1 chip extra bit
-        #} else {
-        #    level = (level << 1) + 1;            // Else set level as requested
-        #}
-        #write_register(RF_SETUP, setup |= level);    // Write it to the chip
+        
         if not isinstance(level, int):
             raise ValueError("PA level must be int.")
         
@@ -396,7 +458,10 @@ class NRF24:
         value &= 0xf8
         value |= level
 
+        self.unset_ce()
         self._nrf_write_reg(NRF24.RF_SETUP, value)
+        self.set_ce()
+
 
     def get_pa_level(self):
         #return (read_register(RF_SETUP) & (_BV(RF_PWR_LOW) | _BV(RF_PWR_HIGH))) >> 1;
@@ -405,8 +470,10 @@ class NRF24:
         value >>= 1
         return RF24_PA(value)
 
+
     def get_spi_handle(self):
         return self._spi_handle
+
 
     def show_registers(self):
         print("Registers:")
@@ -477,10 +544,11 @@ class NRF24:
     def reset_packages_lost(self):
         self.reset_plos()
 
-    # Added 2020-05-01, Bjarne Hansen
     def reset_plos(self):
         v = self._nrf_read_reg(NRF24.RF_CH, 1)[0]
+        self.unset_ce()
         self._nrf_write_reg(NRF24.RF_CH, v)
+        self.set_ce()
 
     # Changed 2020-05-01, Bjarne Hansen
     # WAS:
@@ -489,20 +557,54 @@ class NRF24:
     def ack_payload(self, pipe, data):
         self._nrf_command([self.W_ACK_PAYLOAD | (pipe & 0x07)] + data)
 
+    def make_address(self, address):
+        
+        if isinstance(address, str):
+            addr = list(bytes(address, 'ascii'))
+        
+        elif isinstance(address, bytes) or isinstance(address, bytearray):
+            addr = list(address)
+        
+        elif isinstance(address, list):
+            for n in address:
+                if not (isinstance(n, int) and (0 <= n < 256)):
+                    raise ValueError(f'Invalid value {n} in address. All values must be between 0 and 256.')
+            addr = address
+        
+        elif isinstance(address, int):
+            addr = list(address.to_bytes(self._address_width, 'little'))
+        
+        else:
+            raise ValueError("Unsupported address type.")
+        
+        return addr
+
+
     def open_writing_pipe(self, address):
-        addr = self._make_fixed_width(address, self._address_width, self._padding)
-        self.unset_ce()
-        self._nrf_write_reg(self.TX_ADDR, addr)
-        self._nrf_write_reg(self.RX_ADDR_P0, addr)
-        self.set_ce()
+
+        # Make sure address is properly formatted.
+        addr = self.make_address(address)
+        assert len(addr) == self._address_width, f"Invalid address length {len(addr)} of address {address} ({addr})."
+
+        en_rxaddr = self._nrf_read_reg(NRF24.EN_RXADDR, 1)[0]       # Get currenly enabled addresses.
+        en_aa = self._nrf_read_reg(NRF24.EN_AA, 1)[0]               # Get currently enabled auto-acknowledgement.
+        enable = 1                                                  # Enable acknowledgement etc. for pipe P0.
+
+        # Update the transmission address and P0 as the acknowledgement address.
+        self.unset_ce()                                             # Enter standby.
+        self._nrf_write_reg(self.TX_ADDR, addr)                     # Write transmission address.
+        self._nrf_write_reg(RF24_RX_ADDR.P0, addr)                  # Write transmission address as receiving address P0 for ACK.        
+        self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)    # Enable reception on pipe P0
+        self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)            # Enable auto-acknowledgement.
+        self.set_ce()                                               # Leave standby.
+
 
     def get_writing_address(self):
-        return self._nrf_read_reg(NRF24.TX_ADDR, 5)
+        return bytes(self._nrf_read_reg(NRF24.TX_ADDR, 5))[0:self._address_width]
 
-    def open_reading_pipe(self, pipe, address):
-        # pipe: RX_ADDR_P0, RX_ADDR_P1, RX_ADDR_P2, RX_ADDR_P3, RX_ADDR_P4, RX_ADDR_P5
-        # address: max 5 bytes for P0 and P1, max 1 byte for P2, P3, P4, and P5
 
+    def open_reading_pipe(self, pipe, address, size=None):
+    
         # Validate pipe input.
         if not (isinstance(pipe, int) or isinstance(pipe, RF24_RX_ADDR)):
             raise ValueError(f"pipe must be int or RF24_RX_ADDR enum.")
@@ -515,16 +617,79 @@ class NRF24:
             raise ValueError(f"pipe out of range ({NRF24.RX_ADDR_P0:02x} <= pipe <= and {NRF24.RX_ADDR_P5:02x}).")
         
         # Adjust address.
-        addr = self._make_fixed_width(address, self._address_width, self._padding)
-        if pipe > 0x0b:
+        addr = self.make_address(address)
+        assert len(addr) == self._address_width, f"Invalid address length {len(addr)} of address {address} ({addr})."
+
+        # If the address is greater that RF24_RX_ADDR.P1, we use only the first byte of the address.        
+        if pipe > RF24_RX_ADDR.P1:
             addr = addr[:1]
-        
+
+        # If no payload size is specified, use the default one.
+        if not size:
+            size = self._payload_size
+        else:
+            # If a payload size is specified, verify that it is within valid range.
+            assert RF24_PAYLOAD.ACK <= size <= RF24_PAYLOAD.MAX, "Payload size must be between RF24_PAYLOAD.ACK and RF24_PAYLOAD.MAX"
+
         # Update address on NRF24L01 module.
+        en_rxaddr = self._nrf_read_reg(NRF24.EN_RXADDR, 1)[0]                       # Get currently enabled pipes.
+        dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0]                               # Get currently enabled dynamic payload.
+        en_aa = self._nrf_read_reg(NRF24.EN_AA, 1)[0]                               # Get currently enabled auto-acknowledgement.
+        
+        enable = 1 << (pipe - NRF24.RX_ADDR_P0)                                     # Calculate "enable" value
+        disable = ~enable & 0xFF                                                    # Calculate "disable" mask.
+
+        self.unset_ce()                                                             # Enter standby mode.
+        
+        if RF24_PAYLOAD.MIN <= size <= RF24_PAYLOAD.MAX:
+            # Static payload size.
+            self._nrf_write_reg(NRF24.DYNPD, dynpd & disable)                       # Disable dynamic payload.
+            self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), size)   # Set size of payload.
+        elif size == RF24_PAYLOAD.DYNAMIC or RF24_PAYLOAD.ACK:
+            # Dynamic payload size / dynamic payload size with acknowledgement payload.
+            self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), 0)      # Set size of payload to 0.
+            self._nrf_write_reg(NRF24.DYNPD, dynpd | enable)                        # Enable dynamic payload.
+            if size == RF24_PAYLOAD.DYNAMIC:
+                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)                    # Enable dynamic payload.
+            else:
+                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY) # Enable dynamic payload and acknowledgement payload feature.
+
+        self._nrf_write_reg(pipe, addr)                                             # Set address for pipe.
+        self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)                            # Enable auto-acknowledgement.
+        self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)                    # Enable reception on pipe.        
+        self.set_ce()                                                               # Leave standby mode.
+
+        
+    def close_reading_pipe(self, pipe):        
+        # We accept pipe addresses 0..5 or RX_ADDR_P0..RX_ADDR_P5
+        
+        if RF24_RX_ADDR.P0 <= pipe <= RF24_RX_ADDR.P5:
+            pipe -= RF24_RX_ADDR.P0
+        
+        assert 0 <= pipe <= 5, "Pipe should be in range 0..5 or RF24_RX_ADDR.P0..RF24_RX_ADDR.P5."
+
+        # Read the EN_RXADDR register.
         en_rxaddr = self._nrf_read_reg(NRF24.EN_RXADDR, 1)[0]
-        enable = 1 << (pipe - NRF24.RX_ADDR_P0)
+
+        # Calculate a mask for disabling the particular bit of the pipe.
+        mask = ~(1 << pipe) & 0xFF
+
+        # Write back the register masked to disable the pipe.
         self.unset_ce()
-        self._nrf_write_reg(pipe, addr)
-        self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)        
+        self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr & mask)
+        self.set_ce()
+
+    def close_all_reading_pipes(self):
+        # Close all reading pipes. 
+        # PLEASE NOTE: This will disable acknowledgements for transmission on P0.
+        self.unset_ce()
+        self._nrf_write_reg(NRF24.EN_RXADDR, 0)
+        self.set_ce()
+    
+    def reset_reading_pipes(self):
+        # Resets reading pipes to standard configuration as per product sheet. 
+        self.unset_ce()
+        self._nrf_write_reg(NRF24.EN_RXADDR, 0b00000011)
         self.set_ce()
 
     def get_reading_address(self, pipe):
@@ -540,26 +705,14 @@ class NRF24:
             raise ValueError(f"pipe out of range ({NRF24.RX_ADDR_P0:02x} <= pipe <= and {NRF24.RX_ADDR_P5:02x}).")
 
         if (pipe >= NRF24.RX_ADDR_P0 and pipe <= NRF24.RX_ADDR_P1):
-            return self._nrf_read_reg(pipe, 5)
+            return bytes(self._nrf_read_reg(pipe, 5))[0:self._address_width]
         else:
             p1 = self._nrf_read_reg(RF24_RX_ADDR.P1, 5)
             b = self._nrf_read_reg(pipe, 1)[0]
             p1[0] = b
-            return p1
+            return bytes(p1)[0:self._address_width]
 
 
-    #def set_local_address(self, address):
-    #    addr = self._make_fixed_width(address, self._address_width, self._padding)
-    #    self.unset_ce()
-    #    self._nrf_write_reg(NRF24.RX_ADDR_P1, addr)
-    #    self.set_ce()
-
-    #def set_remote_address(self, raddr):
-    #    addr = self._make_fixed_width(raddr, self._address_width, self._padding)
-    #    self.unset_ce()
-    #    self._nrf_write_reg(self.TX_ADDR, addr)
-    #    self._nrf_write_reg(self.RX_ADDR_P0, addr)      # Required for automatic acknowledgements.
-    #    self.set_ce()
 
     def data_ready_pipe(self):
         status = self.get_status()
@@ -621,24 +774,36 @@ class NRF24:
         return self._nrf_command(self.NOP)[0]
 
     def power_up_tx(self):
-        self.unset_ce()
+        
         self._power_tx = 1
-        config = self.EN_CRC | self._crc_bytes | self.PWR_UP
+        
+        #config = self.EN_CRC | self._crc_bytes | self.PWR_UP
+        #self._nrf_write_reg(self.CONFIG, config)
+        config = self._nrf_read_reg(self.CONFIG, 1)[0]
+        config &= (~self.PRIM_RX & 0xFF)                    # Disable receive.
+        config |= self.PWR_UP                               # Enable power.
+        self.unset_ce()
         self._nrf_write_reg(self.CONFIG, config)
         self._nrf_write_reg(self.STATUS, self.RX_DR | self.TX_DS | self.MAX_RT)
         self.set_ce()
 
     def power_up_rx(self):
-        self.unset_ce()
+        
         self._power_tx = 0
-        config = self.EN_CRC | self._crc_bytes | self.PWR_UP | self.PRIM_RX
-        self._nrf_write_reg(self.CONFIG, config)
+        #config = self.EN_CRC | self._crc_bytes | self.PWR_UP | self.PRIM_RX
+        #self._nrf_write_reg(self.CONFIG, config)
+        config = self._nrf_read_reg(self.CONFIG, 1)[0]
+        self.unset_ce()
+        self._nrf_write_reg(self.CONFIG, config | self.PWR_UP | self.PRIM_RX)        
         self._nrf_write_reg(self.STATUS, self.RX_DR | self.TX_DS | self.MAX_RT)
         self.set_ce()
 
     def power_down(self):
+        config = self._nrf_read_reg(self.CONFIG, 1)[0]
+        mask = ~self.PWR_UP & 0xFF
         self.unset_ce()
-        self._nrf_write_reg(self.CONFIG, self.EN_CRC | self._crc_bytes)
+        self._nrf_write_reg(self.CONFIG, config & mask)
+        #self._nrf_write_reg(self.CONFIG, self.EN_CRC | self._crc_bytes)
 
     def set_ce(self):
         self._pi.write(self._ce_pin, 1)
@@ -675,28 +840,29 @@ class NRF24:
             arg = [arg]
         self._nrf_xfer([self.W_REGISTER | reg] + arg)
 
-    def _configure_payload(self):
-        if self._payload_size >= RF24_PAYLOAD.MIN:                      # fixed payload
-            self._nrf_write_reg(NRF24.RX_PW_P0, self._payload_size)
-            self._nrf_write_reg(NRF24.RX_PW_P1, self._payload_size)
-            self._nrf_write_reg(NRF24.RX_PW_P2, self._payload_size)
-            self._nrf_write_reg(NRF24.RX_PW_P3, self._payload_size)
-            self._nrf_write_reg(NRF24.RX_PW_P4, self._payload_size)
-            self._nrf_write_reg(NRF24.RX_PW_P5, self._payload_size)
-            self._nrf_write_reg(NRF24.DYNPD, 0)
-            self._nrf_write_reg(NRF24.FEATURE, 0)
-        else:                                                           # dynamic payload
-            self._nrf_write_reg(NRF24.RX_PW_P0, 0)
-            self._nrf_write_reg(NRF24.RX_PW_P1, 0)
-            self._nrf_write_reg(NRF24.RX_PW_P2, 0)
-            self._nrf_write_reg(NRF24.RX_PW_P3, 0)
-            self._nrf_write_reg(NRF24.RX_PW_P4, 0)
-            self._nrf_write_reg(NRF24.RX_PW_P5, 0)
-            self._nrf_write_reg(NRF24.DYNPD, NRF24.DPL_P0 | NRF24.DPL_P1 | NRF24.DPL_P2 | NRF24.DPL_P3 | NRF24.DPL_P4 | NRF24.DPL_P5 | NRF24.DPL_P6 | NRF24.DPL_P7)
-            if self._payload_size == RF24_PAYLOAD.ACK: 
-                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY)
-            else:
-                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)
+
+    # def _configure_payload(self):
+    #     if self._payload_size >= RF24_PAYLOAD.MIN:                      # fixed payload
+    #         self._nrf_write_reg(NRF24.RX_PW_P0, self._payload_size)
+    #         self._nrf_write_reg(NRF24.RX_PW_P1, self._payload_size)
+    #         self._nrf_write_reg(NRF24.RX_PW_P2, self._payload_size)
+    #         self._nrf_write_reg(NRF24.RX_PW_P3, self._payload_size)
+    #         self._nrf_write_reg(NRF24.RX_PW_P4, self._payload_size)
+    #         self._nrf_write_reg(NRF24.RX_PW_P5, self._payload_size)
+    #         self._nrf_write_reg(NRF24.DYNPD, 0)
+    #         self._nrf_write_reg(NRF24.FEATURE, 0)
+    #     else:                                                           # dynamic payload
+    #         self._nrf_write_reg(NRF24.RX_PW_P0, 0)
+    #         self._nrf_write_reg(NRF24.RX_PW_P1, 0)
+    #         self._nrf_write_reg(NRF24.RX_PW_P2, 0)
+    #         self._nrf_write_reg(NRF24.RX_PW_P3, 0)
+    #         self._nrf_write_reg(NRF24.RX_PW_P4, 0)
+    #         self._nrf_write_reg(NRF24.RX_PW_P5, 0)
+    #         self._nrf_write_reg(NRF24.DYNPD, NRF24.DPL_P0 | NRF24.DPL_P1 | NRF24.DPL_P2 | NRF24.DPL_P3 | NRF24.DPL_P4 | NRF24.DPL_P5 | NRF24.DPL_P6 | NRF24.DPL_P7)
+    #         if self._payload_size == RF24_PAYLOAD.ACK: 
+    #             self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY)
+    #         else:
+    #             self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)
 
     # Constants related to NRF24 configuration/operation.
     _AUX_SPI = (1 << 8)

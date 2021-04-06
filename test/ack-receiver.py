@@ -53,8 +53,8 @@ if __name__ == "__main__":
     count = 0
 
     # Set the UUID that will be the payload of the next acknowledgement.
-    ack_uuid = uuid4()
-    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid.bytes))
+    next_id = 1
+    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<I', next_id))
     
     try:
         print(f'Receive data on {address}')
@@ -74,7 +74,7 @@ if __name__ == "__main__":
                 hex = ':'.join(f'{i:02x}' for i in payload)
 
                 # Show message received as hex.
-                print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {hex}, count: {count}, next_id={ack_uuid}")
+                print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {hex}, count: {count}, next_id={next_id}")
 
                 # If the length of the message is 9 bytes and the first byte is 0x01, then we try to interpret the bytes
                 # sent as an example message holding a temperature and humidity.
@@ -84,8 +84,8 @@ if __name__ == "__main__":
                     print(f'Protocol: {values[0]}, temperature: {values[1]}, humidity: {values[2]}')
                     
                     # Set uuid that will be part of the next acknowledgement.
-                    ack_uuid = uuid4()
-                    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid.bytes))
+                    next_id += 1
+                    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<I', next_id))
                 
             # Sleep 1 ms.
             time.sleep(0.001)

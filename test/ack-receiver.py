@@ -1,16 +1,19 @@
-import pigpio
-import time
-from datetime import datetime
-from nrf24 import *
-import struct
-from os import environ as env
 import argparse
+from datetime import datetime
+from os import environ as env
+import struct
 import sys
+import time
+import traceback
 from uuid import uuid4
+
+import pigpio
+from nrf24 import *
+
 #
 # A simple NRF24L receiver that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
-# starts receiving data on the address specified.  Use the companion program "simple-sender.py" to send data to it from
-# a different Raspberry Pi.
+# starts receiving data on the address specified sending a continiously increasing integer as acknowledgement payload.  
+# Use the companion program "ack-sender.py" to send data to it from a different Raspberry Pi.
 #
 if __name__ == "__main__":
 
@@ -49,15 +52,14 @@ if __name__ == "__main__":
     # Display the content of NRF24L01 device registers.
     nrf.show_registers()
 
-    # Enter a loop receiving data on the address specified.
-    count = 0
-
     # Set the UUID that will be the payload of the next acknowledgement.
     ack_uuid = uuid4()
     nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid.bytes))
     
     try:
+        # Enter a loop receiving data on the address specified.
         print(f'Receive data on {address}')
+        count = 0
         while True:
 
             # As long as data is ready for processing, process it.
@@ -91,6 +93,6 @@ if __name__ == "__main__":
             time.sleep(0.001)
 
     except:
-        
+        traceback.print_exc()
         nrf.power_down()
         pi.stop()

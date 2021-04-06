@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="ack-sender.py", description="Simple NRF24 Sender with Acknowledgement Payload.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
-    parser.add_argument('address', type=str, default='1ACKS', help="Address to send to (3 to 5 ASCII characters).")
+    parser.add_argument('address', type=str, nargs='?', default='1ACKS', help="Address to send to (3 to 5 ASCII characters).")
     
     args = parser.parse_args()
     hostname = args.hostname

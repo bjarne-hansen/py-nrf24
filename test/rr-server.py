@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
                     # In this example we just select a random on/off state of the relay. In a real application we
                     # would determine the state of the relay from a GPIO PIN.
-                    state = random.choice(True, False)
+                    state = random.choice([True, False])
                     
                     # Pack payload response to command 0x02
                     response = struct.pack('<H?', 0x02, state)

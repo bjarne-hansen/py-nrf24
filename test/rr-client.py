@@ -22,8 +22,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="rr-client.py", description="Simple NRF24 Request/Reply Client.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
-    parser.add_argument('client', type=str, default='1CLNT', help="Address of this client (3 to 5 ASCII characters).")
-    parser.add_argument('server', type=str, default='1SRVR', help="Address of server (3 to 5 ASCII characters).")
+    parser.add_argument('client', type=str, nargs='?', default='1CLNT', help="Address of this client (3 to 5 ASCII characters).")
+    parser.add_argument('server', type=str, nargs='?', default='1SRVR', help="Address of server (3 to 5 ASCII characters).")
     
     
     args = parser.parse_args()
@@ -67,7 +67,7 @@ if __name__ == "__main__":
     while True:
 
         # Pick a random command to send to the server.
-        command = random.choice(0x01, 0x02)
+        command = random.choice([0x01, 0x02])
 
         # Pack the request.
         print(f'Request: command={command}, reply_to={client}')

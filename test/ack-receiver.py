@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     # Set the UUID that will be the payload of the next acknowledgement.
     ack_uuid = uuid4()
-    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid))
+    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid.bytes))
     
     try:
         print(f'Receive data on {address}')
@@ -85,11 +85,11 @@ if __name__ == "__main__":
                     
                     # Set uuid that will be part of the next acknowledgement.
                     ack_uuid = uuid4()
-                    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid))
+                    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid.bytes))
                 
             # Sleep 1 ms.
             time.sleep(0.001)
-            
+
     except:
         nrf.power_down()
         pi.stop()

@@ -70,10 +70,11 @@ if __name__ == "__main__":
         command = random.choice([0x01, 0x02])
 
         # Pack the request.
-        print(f'Request: command={command}, reply_to={client}')
-        request = struct.pack('<H5p', command, client)
-
+        request = struct.pack('<H6p', command, bytes(client, 'ascii'))
+        print(f'Request: command={command}, reply_to={client}, {":".join(f"{c:02x}" for c in request)}')
+        
         # Send the request.
+
         nrf.reset_packages_lost()
         nrf.send(request)
         while nrf.is_sending():
@@ -88,7 +89,7 @@ if __name__ == "__main__":
             reply_start = time.monotonic()
             while True:                    
 
-                if nrf.data_ready:
+                if nrf.data_ready():
                     response = nrf.get_payload()
 
                     if response[0] == 0x01:

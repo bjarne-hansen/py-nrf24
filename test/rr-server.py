@@ -77,7 +77,7 @@ if __name__ == "__main__":
             # We expect the request to be a message with a 2 byte "command", and a 5 character reply-to address.
             if len(payload) == 7 and payload[0] == 0x01:
 
-                command, reply_to = struct.unpack("<H5p", payload)
+                command, reply_to = struct.unpack("<H6p", payload)
                 print(f'Request: reply address={reply_to}, command: {command:02x}')
 
                 if command == 0x01:

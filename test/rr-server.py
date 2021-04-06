@@ -74,11 +74,11 @@ if __name__ == "__main__":
             # Show message received as hex.
             print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {hex}, count: {count}")
             
-            # We expect the request to be a message with a 2 byte "command", and a 5 character reply-to address.
-            if len(payload) == 8 and payload[0] == 0x01:
+            # We expect the request to be a message with a 2 byte "command", and a 6 byte char[] reply-to address.
+            if len(payload) == 8:
 
                 command, reply_to = struct.unpack("<H6p", payload)
-                print(f'Request: reply address={reply_to}, command: {command:02x}')
+                print(f'Request: command: 0x{command:02x}, reply address={reply_to}.')
 
                 if command == 0x01:
                     # Command 0x01: Get UUID

@@ -41,6 +41,7 @@ if __name__ == "__main__":
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=9, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
     nrf.set_address_bytes(len(address))
+    nrf.set_pa_level(RF24_PA.LOW)
     nrf.open_writing_pipe(address)
     
     # Take a small break to let tranceiver settle and then show registers of the NRF24L01 device.
@@ -63,7 +64,14 @@ if __name__ == "__main__":
         payload = struct.pack("<Bff", 0x01, temperature, humidity)
 
         # Send the payload to the address specified above.
+        nrf.reset_packages_lost()
         nrf.send(payload)
+        while nrf.is_sending():
+            time.sleep(0.00004)
+        if nrf.get_packages_lost() == 0:
+            print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+        else:
+            print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
         # Wait 10 seconds before sending the next reading.
         time.sleep(10)

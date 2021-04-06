@@ -63,7 +63,14 @@ if __name__ == "__main__":
         payload = struct.pack("<Bff", 0x01, temperature, humidity)
 
         # Send the payload to the address specified above.
+        nrf.reset_packages_lost()
         nrf.send(payload)
+        while nrf.is_sending():
+            time.sleep(0.0004)
+        if nrf.get_packages_lost() == 0:
+            print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+        else:
+            print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
         # Wait 10 seconds before sending the next reading.
         time.sleep(10)

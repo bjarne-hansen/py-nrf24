@@ -581,7 +581,7 @@ class NRF24:
         return addr
 
 
-    def open_writing_pipe(self, address):
+    def open_writing_pipe(self, address, size=None):
 
         # Make sure address is properly formatted.
         addr = self.make_address(address)
@@ -593,15 +593,66 @@ class NRF24:
 
         # Update the transmission address and P0 as the acknowledgement address.
         self.unset_ce()                                             # Enter standby.
-        self._nrf_write_reg(self.TX_ADDR, addr)                     # Write transmission address.
-        self._nrf_write_reg(RF24_RX_ADDR.P0, addr)                  # Write transmission address as receiving address P0 for ACK.        
-        self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)    # Enable reception on pipe P0
-        self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)            # Enable auto-acknowledgement.
+        self._nrf_write_reg(self.TX_ADDR, addr)                     # Set the transmission address.
+
+        # self._nrf_write_reg(RF24_RX_ADDR.P0, addr)                  # Write transmission address as receiving address P0 for ACK.        
+        # self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)    # Enable reception on pipe P0
+        # self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)            # Enable auto-acknowledgement.
+        
+        self._open_reading_pipe(RF24_RX_ADDR.P0, addr, size)          # Open P0 for reading the acknowledgement.
+        
+        # >>> Experiment
+        # dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0] 
+        # disable = ~enable & 0xFF  
+        # self._nrf_write_reg(NRF24.DYNPD, dynpd & disable)                                  # Disable dynamic payload.
+        # self._nrf_write_reg(NRF24.RX_PW_P0 + (NRF24.RX_ADDR_P0 - NRF24.RX_ADDR_P0), 9)   # Set size of payload.
+        # <<<
+        # >>>
+        # dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0] 
+        # self._nrf_write_reg(NRF24.RX_PW_P0 + (NRF24.RX_ADDR_P0 - NRF24.RX_ADDR_P0), 0)      # Set size of payload to 0.
+        # self._nrf_write_reg(NRF24.DYNPD, dynpd | enable)                        # Enable dynamic payload.
+        # self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)                    # Enable dynamic payload.            
+        # <<<
+    
         self.set_ce()                                               # Leave standby.
 
 
     def get_writing_address(self):
         return bytes(self._nrf_read_reg(NRF24.TX_ADDR, 5))[0:self._address_width]
+
+
+    def _open_reading_pipe(self, pipe, address, size=None):
+
+        # If no payload size is specified, use the default one.
+        if not size:
+            size = self._payload_size
+        else:
+            # If a payload size is specified, verify that it is within valid range.
+            assert RF24_PAYLOAD.ACK <= size <= RF24_PAYLOAD.MAX, "Payload size must be between RF24_PAYLOAD.ACK and RF24_PAYLOAD.MAX"
+
+        en_rxaddr = self._nrf_read_reg(NRF24.EN_RXADDR, 1)[0]                       # Get currently enabled pipes.
+        dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0]                               # Get currently enabled dynamic payload.
+        en_aa = self._nrf_read_reg(NRF24.EN_AA, 1)[0]                               # Get currently enabled auto-acknowledgement.
+        
+        enable = 1 << (pipe - NRF24.RX_ADDR_P0)                                     # Calculate "enable" value
+        disable = ~enable & 0xFF                                                    # Calculate "disable" mask.
+
+        if RF24_PAYLOAD.MIN <= size <= RF24_PAYLOAD.MAX:
+            # Static payload size.
+            self._nrf_write_reg(NRF24.DYNPD, dynpd & disable)                       # Disable dynamic payload.
+            self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), size)   # Set size of payload.
+        elif size == RF24_PAYLOAD.DYNAMIC or RF24_PAYLOAD.ACK:
+            # Dynamic payload size / dynamic payload size with acknowledgement payload.
+            self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), 0)      # Set size of payload to 0.
+            self._nrf_write_reg(NRF24.DYNPD, dynpd | enable)                        # Enable dynamic payload.
+            if size == RF24_PAYLOAD.DYNAMIC:
+                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)                    # Enable dynamic payload.
+            else:
+                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY) # Enable dynamic payload and acknowledgement payload feature.
+
+        self._nrf_write_reg(pipe, address)                                             # Set address for pipe.
+        self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)                            # Enable auto-acknowledgement.
+        self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)                    # Enable reception on pipe.      
 
 
     def open_reading_pipe(self, pipe, address, size=None):
@@ -625,40 +676,38 @@ class NRF24:
         if pipe > RF24_RX_ADDR.P1:
             addr = addr[:1]
 
-        # If no payload size is specified, use the default one.
-        if not size:
-            size = self._payload_size
-        else:
-            # If a payload size is specified, verify that it is within valid range.
-            assert RF24_PAYLOAD.ACK <= size <= RF24_PAYLOAD.MAX, "Payload size must be between RF24_PAYLOAD.ACK and RF24_PAYLOAD.MAX"
+        self.unset_ce()
+        self._open_reading_pipe(pipe, addr, size)
+        self.set_ce()
 
-        # Update address on NRF24L01 module.
-        en_rxaddr = self._nrf_read_reg(NRF24.EN_RXADDR, 1)[0]                       # Get currently enabled pipes.
-        dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0]                               # Get currently enabled dynamic payload.
-        en_aa = self._nrf_read_reg(NRF24.EN_AA, 1)[0]                               # Get currently enabled auto-acknowledgement.
+        # # Update address on NRF24L01 module.
+        # en_rxaddr = self._nrf_read_reg(NRF24.EN_RXADDR, 1)[0]                       # Get currently enabled pipes.
+        # dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0]                               # Get currently enabled dynamic payload.
+        # en_aa = self._nrf_read_reg(NRF24.EN_AA, 1)[0]                               # Get currently enabled auto-acknowledgement.
         
-        enable = 1 << (pipe - NRF24.RX_ADDR_P0)                                     # Calculate "enable" value
-        disable = ~enable & 0xFF                                                    # Calculate "disable" mask.
+        # enable = 1 << (pipe - NRF24.RX_ADDR_P0)                                     # Calculate "enable" value
+        # disable = ~enable & 0xFF                                                    # Calculate "disable" mask.
 
-        self.unset_ce()                                                             # Enter standby mode.
+        # self.unset_ce()                                                             # Enter standby mode.
         
-        if RF24_PAYLOAD.MIN <= size <= RF24_PAYLOAD.MAX:
-            # Static payload size.
-            self._nrf_write_reg(NRF24.DYNPD, dynpd & disable)                       # Disable dynamic payload.
-            self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), size)   # Set size of payload.
-        elif size == RF24_PAYLOAD.DYNAMIC or RF24_PAYLOAD.ACK:
-            # Dynamic payload size / dynamic payload size with acknowledgement payload.
-            self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), 0)      # Set size of payload to 0.
-            self._nrf_write_reg(NRF24.DYNPD, dynpd | enable)                        # Enable dynamic payload.
-            if size == RF24_PAYLOAD.DYNAMIC:
-                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)                    # Enable dynamic payload.
-            else:
-                self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY) # Enable dynamic payload and acknowledgement payload feature.
+        # if RF24_PAYLOAD.MIN <= size <= RF24_PAYLOAD.MAX:
+        #     # Static payload size.
+        #     self._nrf_write_reg(NRF24.DYNPD, dynpd & disable)                       # Disable dynamic payload.
+        #     self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), size)   # Set size of payload.
+        # elif size == RF24_PAYLOAD.DYNAMIC or RF24_PAYLOAD.ACK:
+        #     # Dynamic payload size / dynamic payload size with acknowledgement payload.
+        #     self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), 0)      # Set size of payload to 0.
+        #     self._nrf_write_reg(NRF24.DYNPD, dynpd | enable)                        # Enable dynamic payload.
+        #     if size == RF24_PAYLOAD.DYNAMIC:
+        #         self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)                    # Enable dynamic payload.
+        #     else:
+        #         self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY) # Enable dynamic payload and acknowledgement payload feature.
 
-        self._nrf_write_reg(pipe, addr)                                             # Set address for pipe.
-        self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)                            # Enable auto-acknowledgement.
-        self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)                    # Enable reception on pipe.        
-        self.set_ce()                                                               # Leave standby mode.
+        # self._nrf_write_reg(pipe, addr)                                             # Set address for pipe.
+        # self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)                            # Enable auto-acknowledgement.
+        # self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)                    # Enable reception on pipe.      
+
+        # self.set_ce()                                                               # Leave standby mode.
 
         
     def close_reading_pipe(self, pipe):        

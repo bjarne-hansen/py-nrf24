@@ -23,7 +23,7 @@ def send_fixed_payload_message(nrf, address, temperature, humidity):
     payload = struct.pack("<Bff", 0x01, temperature, humidity)
 
     # Open the writing pipe for sending to the address specified.
-    nrf.open_writing_pipe(address)
+    nrf.open_writing_pipe(address, size=9)
 
     # Reset the packages lost register.
     nrf.reset_packages_lost()
@@ -32,21 +32,17 @@ def send_fixed_payload_message(nrf, address, temperature, humidity):
     # number of retries have been reached.
     nrf.send(payload)
     while nrf.is_sending():
-        time.sleep(0.004)
+        time.sleep(0.0004)
 
     if nrf.get_packages_lost() == 0:
-        # If packages lost is 0, the message was sent successfully.
-        print(f"Successfully sent fixed payload message: retries={nrf.get_retries()}")
+        print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
     else:
-        # If packages lost is greather than 0, the package we have just
-        # sent was lost.
-        print(f"Failed to send fixed payload message: retries={nrf.get_retries()}")
-
+        print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
 def send_dynamic_payload_message(nrf, address, count):
 
     # Open the address for writing.
-    nrf.open_writing_pipe(address)        
+    nrf.open_writing_pipe(address, size=RF24_PAYLOAD.DYNAMIC)
 
     # Reset the packages lost register.
     nrf.reset_packages_lost()
@@ -59,15 +55,14 @@ def send_dynamic_payload_message(nrf, address, count):
     # number of retries have been reached.
     nrf.send(payload)
     while nrf.is_sending():
-        time.sleep(0.004)
-    
-    if nrf.get_packages_lost() == 0:
-        # If packages lost is 0, the package was successfully sent.
-        print(f"Successfully sent dynamic payload message: retries={nrf.get_retries()}")
-    else:
-        # If packages lost is greather than 0, the package was lost.
-        print(f"Failed to send dynamic payload message: retries={nrf.get_retries()}")
+        time.sleep(0.0004)
 
+    if nrf.get_packages_lost() == 0:
+        print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+    else:
+        print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+    
+    
 
 if __name__ == "__main__":    
     print("Python NRF24 Simple Sender Example.")
@@ -121,7 +116,7 @@ if __name__ == "__main__":
         send_fixed_payload_message(nrf, address[0], temperature, humidity)
 
         # Send the message with the dynamic payload size.
-        send_dynamic_payload_message(nrf, address[1], count)
+        #send_dynamic_payload_message(nrf, address[1], count)
 
         count += 1
         # Wait 10 seconds before sending the next reading.

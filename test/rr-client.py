@@ -97,11 +97,13 @@ if __name__ == "__main__":
                         command, uuid_bytes = struct.unpack('<H17p', response)
                         uuid = UUID(bytes=uuid_bytes)
                         print(f'Response: command={command}, uuid={uuid}')
+                        break
 
                     elif response[0] == 0x02:
                         # The response is a response to a 0x01 command.
                         command, relay = struct.unpack('<H?', response)
                         print(f'Response: command={command}, relay on={relay}')
+                        break
 
                     else:
                         # Invalid response.

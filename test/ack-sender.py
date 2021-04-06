@@ -1,20 +1,20 @@
-import pigpio
-import time
+import argparse
 from datetime import datetime
-from nrf24 import *
-import struct
 from os import environ as env
 from random import normalvariate
-import argparse
+import struct
 import sys
-from uuid import UUID
+import time
 import traceback
+from uuid import UUID
 
+import pigpio
+from nrf24 import *
 
 #
 # A simple NRF24L sender that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
-# starts sending data on the address specified.  Use the companion program "simple-receiver.py" to receive the data
-# from it on a different Raspberry Pi.
+# starts sending data on the address specified expecting an acknowledgement with a payload.  
+# Use the companion program "ack-receiver.py" to receive the data from it on a different Raspberry Pi.
 #
 if __name__ == "__main__":    
     print("Python NRF24 Sender with Acknowledgement Payload Example.")
@@ -44,13 +44,14 @@ if __name__ == "__main__":
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.ACK, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
     nrf.set_address_bytes(len(address))
-    nrf.set_retransmission(15, 15)
+    nrf.set_retransmission(5, 15)
     nrf.open_writing_pipe(address)
 
     # Show registers.
     nrf.show_registers()
 
     try:
+        # Enter a loop sending data to the address specified.
         print(f"Send data to: {address}")
         while True:
 
@@ -72,33 +73,28 @@ if __name__ == "__main__":
             while nrf.is_sending():
                 time.sleep(0.0004)
             
-            print(nrf.format_config())
-            print(nrf.format_status())
-            nrf.power_up_rx()
-            
             if nrf.get_packages_lost() == 0:
                 # The package we sent was successfully received by the server.
                 print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
                 # Check if an acknowledgement package is available.
                 if nrf.data_ready():
+                    # Get payload.
                     pipe = nrf.data_pipe()
                     payload = nrf.get_payload()
 
-                    # We have received some bytes ...
-                    print(f'Received {":".join(f"{c:02x}" for c in payload)}')
-
-                    if len(payload) == 17:
-                        # We have received an UUID as expected.
-                        uuid_bytes = struct.unpack('<17p', payload)
-                        print(f'Acknowledgement UUID={UUID(bytes=uuid_bytes)}')
+                    # If the payload is 4 bytes, we expect it to be an acknowledgement payload.
+                    if len(payload) == 4:
+                        (next_id, ) = struct.unpack('<I', payload)
                     else:
-                        # Som
-                        print('Invalid acknowledgement received.')
+                        next_id = -1
+
+                    # We have received some bytes ...
+                    print(f'Received: payload={":".join(f"{c:02x}" for c in payload)}, next_id={next_id}')
+                
                 else:
                     # No acknowledgement package seems to be available.
                     print('No acknowledgement package.')
-
             else:
                 # The package we sent was lost.
                 print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")

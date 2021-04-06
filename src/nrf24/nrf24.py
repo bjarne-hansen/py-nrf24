@@ -521,6 +521,7 @@ class NRF24:
             else:
                 data = list(data)
         
+        # Flush TX if buffers are full or max retries is set.
         status = self.get_status()
         if status & (self.TX_FULL | self.MAX_RT):
             self.flush_tx()

@@ -87,7 +87,7 @@ if __name__ == "__main__":
                     uuid = uuid4()
 
                     # Pack payload response to command 0x01.
-                    response = struct.pack('<H16p', 0x01, uuid.bytes)
+                    response = struct.pack('<H17p', 0x01, uuid.bytes)
 
                 elif command == 0x02:
                     # Command 0x02: Get state of relay

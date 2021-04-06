@@ -94,7 +94,7 @@ if __name__ == "__main__":
 
                     if response[0] == 0x01:
                         # The response is a response to a 0x01 command.
-                        command, uuid_bytes = struct.unpack('<H16p', response)
+                        command, uuid_bytes = struct.unpack('<H17p', response)
                         uuid = UUID(bytes=uuid_bytes)
                         print(f'Response: command={command}, uuid={uuid}')
 

@@ -77,7 +77,7 @@ if __name__ == "__main__":
             # We expect the request to be a message with a 2 byte "command", and a 5 character reply-to address.
             if len(payload) == 7 and payload[0] == 0x01:
 
-                command, reply_to = struct.unpack("<H5c", payload)
+                command, reply_to = struct.unpack("<H5p", payload)
                 print(f'Request: reply address={reply_to}, command: {command:02x}')
 
                 if command == 0x01:
@@ -87,7 +87,7 @@ if __name__ == "__main__":
                     uuid = uuid4()
 
                     # Pack payload response to command 0x01.
-                    response = struct.pack('<H16c', 0x01, uuid.bytes)
+                    response = struct.pack('<H16p', 0x01, uuid.bytes)
 
                 elif command == 0x02:
                     # Command 0x02: Get state of relay

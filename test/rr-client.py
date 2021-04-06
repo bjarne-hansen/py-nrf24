@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
         # Pack the request.
         print(f'Request: command={command}, reply_to={client}')
-        request = struct.pack('<H5c', command, client)
+        request = struct.pack('<H5p', command, client)
 
         # Send the request.
         nrf.reset_packages_lost()
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 
                     if response[0] == 0x01:
                         # The response is a response to a 0x01 command.
-                        command, uuid_bytes = struct.unpack('<H16c')
+                        command, uuid_bytes = struct.unpack('<H16p')
                         uuid = UUID(bytes=uuid_bytes)
                         print(f'Response: command={command}, uuid={uuid}')
 

@@ -50,37 +50,42 @@ if __name__ == "__main__":
     nrf.show_registers()
 
     count = 0
-    while True:
 
-        # Emulate that we read temperature and humidity from a sensor, for example
-        # a DHT22 sensor.  Add a little random variation so we can see that values
-        # sent/received fluctuate a bit.
-        temperature = normalvariate(23.0, 0.5)
-        humidity = normalvariate(62.0, 0.5)
-        print(f'Sensor values: temperature={temperature}, humidity={humidity}')
+    try:
+        while True:
 
-        # Pack temperature and humidity into a byte buffer (payload) using a protocol 
-        # signature of 0x01 so that the receiver knows that the bytes we are sending 
-        # are a temperature and a humidity (see "simple-receiver.py").
-        payload = struct.pack("<Bff", 0x01, temperature, humidity)
+            # Emulate that we read temperature and humidity from a sensor, for example
+            # a DHT22 sensor.  Add a little random variation so we can see that values
+            # sent/received fluctuate a bit.
+            temperature = normalvariate(23.0, 0.5)
+            humidity = normalvariate(62.0, 0.5)
+            print(f'Sensor values: temperature={temperature}, humidity={humidity}')
 
-        # Send the payload to the address specified above.
-        nrf.reset_packages_lost()
-        nrf.send(payload)
-        while nrf.is_sending():
-            time.sleep(0.0004)
+            # Pack temperature and humidity into a byte buffer (payload) using a protocol 
+            # signature of 0x01 so that the receiver knows that the bytes we are sending 
+            # are a temperature and a humidity (see "simple-receiver.py").
+            payload = struct.pack("<Bff", 0x01, temperature, humidity)
 
-        if nrf.get_packages_lost() == 0:
-            print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
-            if nrf.data_ready():
-                pipe = nrf.data_pipe()
-                payload = nrf.get_payload()
-                print(f'Received {":".join(f"{c:02x}" for c in payload)}')
-        else:
-            print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+            # Send the payload to the address specified above.
+            nrf.reset_packages_lost()
+            nrf.send(payload)
+            while nrf.is_sending():
+                time.sleep(0.0004)
 
-        # Wait 10 seconds before sending the next reading.
-        time.sleep(10)
+            if nrf.get_packages_lost() == 0:
+                print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+                if nrf.data_ready():
+                    pipe = nrf.data_pipe()
+                    payload = nrf.get_payload()
+                    print(f'Received {":".join(f"{c:02x}" for c in payload)}')
+            else:
+                print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+
+            # Wait 10 seconds before sending the next reading.
+            time.sleep(10)
+    except:
+        nrf.power_down()
+        pi.stop()
 
 
 

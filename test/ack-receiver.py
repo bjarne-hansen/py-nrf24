@@ -91,5 +91,6 @@ if __name__ == "__main__":
             time.sleep(0.001)
 
     except:
+        
         nrf.power_down()
         pi.stop()

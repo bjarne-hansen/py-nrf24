@@ -8,6 +8,7 @@ from random import normalvariate
 import argparse
 import sys
 from uuid import UUID
+import traceback
 
 
 #
@@ -43,7 +44,7 @@ if __name__ == "__main__":
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.ACK, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
     nrf.set_address_bytes(len(address))
-    nrf.set_retransmission(10, 15)
+    nrf.set_retransmission(15, 15)
     nrf.open_writing_pipe(address)
 
     # Show registers.
@@ -73,6 +74,7 @@ if __name__ == "__main__":
             
             print(nrf.format_config())
             print(nrf.format_status())
+            nrf.power_up_rx()
             
             if nrf.get_packages_lost() == 0:
                 # The package we sent was successfully received by the server.
@@ -88,7 +90,7 @@ if __name__ == "__main__":
 
                     if len(payload) == 17:
                         # We have received an UUID as expected.
-                        uuid_bytes = struct.unpack('<17p')
+                        uuid_bytes = struct.unpack('<17p', payload)
                         print(f'Acknowledgement UUID={UUID(bytes=uuid_bytes)}')
                     else:
                         # Som
@@ -104,7 +106,8 @@ if __name__ == "__main__":
             # Wait 10 seconds before sending the next reading.
             time.sleep(10)
 
-    except:
+    except Exception as e:
+        traceback.print_exc()
         nrf.power_down()
         pi.stop()
 

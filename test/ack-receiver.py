@@ -6,7 +6,7 @@ import struct
 from os import environ as env
 import argparse
 import sys
-
+from uuid import uuid4
 #
 # A simple NRF24L receiver that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
 # starts receiving data on the address specified.  Use the companion program "simple-sender.py" to send data to it from
@@ -14,10 +14,10 @@ import sys
 #
 if __name__ == "__main__":
 
-    print("Python NRF24 Simple Receiver Example.")
+    print("Python NRF24 Receiver with Acknowledgement Payload Example.")
     
     # Parse command line argument.
-    parser = argparse.ArgumentParser(prog="simple-receiver.py", description="Simple NRF24 receiver.")
+    parser = argparse.ArgumentParser(prog="ack-receiver.py", description="Simple NRF24 Receiver with Acknowledgement Payload.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
     parser.add_argument('address', type=str, nargs='?', default='1ACKS', help="Address to listen to (3 to 5 ASCII characters).")
@@ -39,9 +39,6 @@ if __name__ == "__main__":
         print("Not connected to Raspberry Pi ... goodbye.")
         exit()
 
-    # Emulate that we return the next id of some sort as part of our acknowledgement message.
-    next_id = 1
-
     # Create NRF24L01 communication object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.ACK, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
     nrf.set_address_bytes(len(address))
@@ -54,9 +51,13 @@ if __name__ == "__main__":
 
     # Enter a loop receiving data on the address specified.
     count = 0
-    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<I', next_id))
+
+    # Set the UUID that will be the payload of the next acknowledgement.
+    ack_uuid = uuid4()
+    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid))
     
     try:
+        print(f'Receive data on {address}')
         while True:
 
             # As long as data is ready for processing, process it.
@@ -69,27 +70,26 @@ if __name__ == "__main__":
                 pipe = nrf.data_pipe()
                 payload = nrf.get_payload()    
 
-                # Resolve protocol number.
-                protocol = payload[0] if len(payload) > 0 else -1            
-
+                # Hex the payload received.
                 hex = ':'.join(f'{i:02x}' for i in payload)
 
                 # Show message received as hex.
-                print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {hex}, count: {count}, next_id={next_id}")
+                print(f"{now:%Y-%m-%d %H:%M:%S.%f}: pipe: {pipe}, len: {len(payload)}, bytes: {hex}, count: {count}, next_id={ack_uuid}")
 
                 # If the length of the message is 9 bytes and the first byte is 0x01, then we try to interpret the bytes
-                # sent as an example message holding a temperature and humidity sent from the "simple-sender.py" program.
+                # sent as an example message holding a temperature and humidity.
                 if len(payload) == 9 and payload[0] == 0x01:
                     
                     values = struct.unpack("<Bff", payload)
                     print(f'Protocol: {values[0]}, temperature: {values[1]}, humidity: {values[2]}')
                     
-                    # Increase next_id and set it as the next payload confirmation message.
-                    next_id += 1
-                    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<I', next_id))
+                    # Set uuid that will be part of the next acknowledgement.
+                    ack_uuid = uuid4()
+                    nrf.ack_payload(RF24_RX_ADDR.P1, struct.pack('<17p', ack_uuid))
                 
             # Sleep 1 ms.
             time.sleep(0.001)
+            
     except:
         nrf.power_down()
         pi.stop()

@@ -818,11 +818,12 @@ class NRF24:
             status = self.get_status()
             
             if status & (self.TX_DS | self.MAX_RT):
-                self.power_up_rx()
+                #self.power_up_rx()
                 return False
                 
             return True
         return False
+
 
     def get_payload(self):
 

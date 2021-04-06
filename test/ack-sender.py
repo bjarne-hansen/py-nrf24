@@ -41,7 +41,10 @@ if __name__ == "__main__":
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.ACK, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
     nrf.set_address_bytes(len(address))
+    nrf.set_retransmission(5, 5)
     nrf.open_writing_pipe(address)
+
+    print(f"Send data to: {address}")
     
     # Show registers.
     nrf.show_registers()
@@ -66,13 +69,13 @@ if __name__ == "__main__":
         nrf.send(payload)
         while nrf.is_sending():
             time.sleep(0.0004)
-        
+
         if nrf.get_packages_lost() == 0:
             print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
             if nrf.data_ready():
                 pipe = nrf.data_pipe()
                 payload = nrf.get_payload()
-                print(f'Received {":".join(f"{c:0x2}" for c in payload)}')
+                print(f'Received {":".join(f"{c:02x}" for c in payload)}')
         else:
             print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 

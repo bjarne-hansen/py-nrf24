@@ -14,6 +14,61 @@ import sys
 # size of 9 byte, while packages sent on the other will have a dynamic payload size.
 # Use the companion program "mixed-receiver.py" to receive the data on a different Raspberry Pi.
 #
+
+def send_fixed_payload_message(nrf, address, temperature, humidity):
+    # Pack temperature and humidity into a byte buffer (payload) using a protocol 
+    # signature of 0x01 so that the receiver knows that the bytes we are sending 
+    # are a temperature and a humidity. After the "pack" operation the payload
+    # will be exactly 9 bytes long.
+    payload = struct.pack("<Bff", 0x01, temperature, humidity)
+
+    # Open the writing pipe for sending to the address specified.
+    nrf.open_writing_pipe(address)
+
+    # Reset the packages lost register.
+    nrf.reset_packages_lost()
+
+    # Send the package and wait for an acknowledgement or that the maximum
+    # number of retries have been reached.
+    nrf.send(payload)
+    while nrf.is_sending():
+        time.sleep(0.004)
+
+    if nrf.get_packages_lost() == 0:
+        # If packages lost is 0, the message was sent successfully.
+        print(f"Successfully sent fixed payload message: retries={nrf.get_retries()}")
+    else:
+        # If packages lost is greather than 0, the package we have just
+        # sent was lost.
+        print(f"Failed to send fixed payload message: retries={nrf.get_retries()}")
+
+
+def send_dynamic_payload_message(nrf, address, count):
+
+    # Open the address for writing.
+    nrf.open_writing_pipe(address)        
+
+    # Reset the packages lost register.
+    nrf.reset_packages_lost()
+
+    # Create a payload with (count % 32) + 1 bytes (each byte is 0x01).
+    # This means a payload of 1..32 bytes.
+    payload = [0x01] * ((count % 32) + 1)
+
+    # Send the message and wait for it to be sent successfully or the maximum
+    # number of retries have been reached.
+    nrf.send(payload)
+    while nrf.is_sending():
+        time.sleep(0.004)
+    
+    if nrf.get_packages_lost() == 0:
+        # If packages lost is 0, the package was successfully sent.
+        print(f"Successfully sent dynamic payload message: retries={nrf.get_retries()}")
+    else:
+        # If packages lost is greather than 0, the package was lost.
+        print(f"Failed to send dynamic payload message: retries={nrf.get_retries()}")
+
+
 if __name__ == "__main__":    
     print("Python NRF24 Simple Sender Example.")
     
@@ -50,7 +105,9 @@ if __name__ == "__main__":
     time.sleep(0.5)
     nrf.show_registers()
 
+    # Count messages sent.
     count = 0
+
     while True:
 
         # Emulate that we read temperature and humidity from a sensor, for example
@@ -60,27 +117,12 @@ if __name__ == "__main__":
         humidity = normalvariate(62.0, 0.5)
         print(f'Sensor values: temperature={temperature}, humidity={humidity}')
 
-        # Pack temperature and humidity into a byte buffer (payload) using a protocol 
-        # signature of 0x01 so that the receiver knows that the bytes we are sending 
-        # are a temperature and a humidity (see "simple-receiver.py").
-        payload = struct.pack("<Bff", 0x01, temperature, humidity)
+        # Send the message with the fixed payload size.
+        send_fixed_payload_message(nrf, address[0], temperature, humidity)
 
-        # Send the payload of 9 bytes to the first address specified.
-        nrf.open_writing_pipe(address[0])
-        nrf.send(payload)
-        while nrf.is_sending():
-            time.sleep(0.004)
+        # Send the message with the dynamic payload size.
+        send_dynamic_payload_message(nrf, address[1], count)
 
-        # Send payload with dynamic length to the second address
-        nrf.open_writing_pipe(address[1])
-        nrf.send([0x01] * ((count % 32) + 1))
-        while nrf.is_sending():
-            time.sleep(0.004)
-    
+        count += 1
         # Wait 10 seconds before sending the next reading.
         time.sleep(10)
-
-
-
-
-

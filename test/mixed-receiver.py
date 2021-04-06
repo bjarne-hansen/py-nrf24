@@ -15,13 +15,13 @@ import sys
 # 
 if __name__ == "__main__":
 
-    print("Python NRF24 Simple Receiver Example.")
+    print("Python NRF24 Mixed Receiver Example.")
     
     # Parse command line argument.
     parser = argparse.ArgumentParser(prog="mixed-receiver.py", description="Simple NRF24 receiver with mixed payload sizes.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
-    parser.add_argument('address', type=str, nargs=2, help="Two addresses to listen to. Both must be 5 characters long.")
+    parser.add_argument('address', type=str, nargs=2, help="Address to receive on, must be 5 characters long.")
 
     args = parser.parse_args()
     hostname = args.hostname
@@ -82,6 +82,8 @@ if __name__ == "__main__":
             if len(payload) == 9 and payload[0] == 0x01:
                 values = struct.unpack("<Bff", payload)
                 print(f'Protocol: {values[0]}, temperature: {values[1]}, humidity: {values[2]}')
+            else:
+                print(f'Dynamic message: pipe: {pipe}, len: {len(payload)}')
             
         # Sleep 100 ms.
         time.sleep(0.1)

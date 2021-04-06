@@ -105,7 +105,7 @@ if __name__ == "__main__":
                     response = struct.pack('<H', command)
 
                 # Send response back.
-                print(f'Response: reply_to={reply_to}, response={":".join(f"{i:02x}" for i in payload)}')
+                print(f'Response: command=0x{command:02x}, reply_to={reply_to}, response={":".join(f"{i:02x}" for i in response)}')
 
                 # Open the writing pipe of the response address.
                 nrf.open_writing_pipe(reply_to)

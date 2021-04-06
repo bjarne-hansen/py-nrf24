@@ -94,19 +94,19 @@ if __name__ == "__main__":
 
                     if response[0] == 0x01:
                         # The response is a response to a 0x01 command.
-                        command, uuid_bytes = struct.unpack('<H16p')
+                        command, uuid_bytes = struct.unpack('<H16p', response)
                         uuid = UUID(bytes=uuid_bytes)
                         print(f'Response: command={command}, uuid={uuid}')
 
                     elif response[0] == 0x02:
                         # The response is a response to a 0x01 command.
-                        command, relay = struct.unpack('<H?')
+                        command, relay = struct.unpack('<H?', response)
                         print(f'Response: command={command}, relay on={relay}')
+
                     else:
                         # Invalid response.
                         print('Invalid response received.')
 
-                
                 if time.monotonic() - reply_start > 1:
                     # If we have waited more than 1 second on a response, we time out. 
                     # This obviously depends on the application.

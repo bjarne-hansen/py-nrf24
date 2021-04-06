@@ -556,7 +556,26 @@ class NRF24:
     # def ack_payload(self, data):
     #     self._nrf_command([self.W_ACK_PAYLOAD] + data)
     def ack_payload(self, pipe, data):
-        self._nrf_command([self.W_ACK_PAYLOAD | (pipe & 0x07)] + data)
+        # We expect a list of byte values to be sent.  However, popular types
+        # such as string, integer, bytes, and bytearray are handled automatically using
+        # this conversion code.
+        if not isinstance(data, list):
+            if isinstance(data, str):
+                data = list(map(ord, data))
+            elif isinstance(data, int):
+                data = list(data.to_bytes(-(-data.bit_length() // 8), 'little'))              
+            else:
+                data = list(data)
+
+        # If a pipe is given as 0..5 add the 0x0a value corresponding to RX_ADDR_P0
+        if (0 <= pipe <= 5):
+            pipe = pipe + NRF24.RX_ADDR_P0
+
+        if (pipe < NRF24.RX_ADDR_P0 or pipe > NRF24.RX_ADDR_P5):
+            raise ValueError(f"pipe out of range ({NRF24.RX_ADDR_P0:02x} <= pipe <= and {NRF24.RX_ADDR_P5:02x}).")
+
+
+        self._nrf_command([self.W_ACK_PAYLOAD | ((pipe - RF24_RX_ADDR.P0) & 0x07)] + data)
 
     def make_address(self, address):
         
@@ -600,7 +619,7 @@ class NRF24:
         # self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)            # Enable auto-acknowledgement.
         
         self._open_reading_pipe(RF24_RX_ADDR.P0, addr, size)          # Open P0 for reading the acknowledgement.
-        
+
         # >>> Experiment
         # dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0] 
         # disable = ~enable & 0xFF  
@@ -662,7 +681,7 @@ class NRF24:
             raise ValueError(f"pipe must be int or RF24_RX_ADDR enum.")
         
         # If a pipe is given as 0..5 add the 0x0a value corresponding to RX_ADDR_P0
-        if (pipe >= 0 and pipe <= 5):
+        if (0 <= pipe <= 5):
             pipe = pipe + NRF24.RX_ADDR_P0
 
         if (pipe < NRF24.RX_ADDR_P0 or pipe > NRF24.RX_ADDR_P5):

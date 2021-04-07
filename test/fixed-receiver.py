@@ -43,7 +43,8 @@ if __name__ == "__main__":
 
     # Create NRF24L01 communication object with a fixed payload size of 9 bytes.
     # PLEASE NOTE: payload_size=9 sets a default payload size for all pipes being opened.
-    nrf = NRF24(pi, ce=25, payload_size=9, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
+    # PLEASE NOTE: PA level is set to MIN, because test sender/receivers are often close to each other, and then MIN works better.
+    nrf = NRF24(pi, ce=25, payload_size=9, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, pa_level=RF24_PA.MIN)
     nrf.set_address_bytes(len(address))
 
     # Listen on the address specified as parameter

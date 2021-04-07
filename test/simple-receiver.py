@@ -41,8 +41,9 @@ if __name__ == "__main__":
         print("Not connected to Raspberry Pi ... goodbye.")
         sys.exit()
 
-    # Create NRF24L01 communication object.
-    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
+    # Create NRF24 object.
+    # PLEASE NOTE: PA level is set to MIN, because test sender/receivers are often close to each other, and then MIN works better.
+    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, pa_level=RF24_PA.MIN)
     nrf.set_address_bytes(len(address))
 
     # Listen on the address specified as parameter

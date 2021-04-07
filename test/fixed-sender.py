@@ -40,9 +40,9 @@ if __name__ == "__main__":
         exit()
 
     # Create NRF24 object.
-    nrf = NRF24(pi, ce=25, payload_size=9, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
+    # PLEASE NOTE: PA level is set to MIN, because test sender/receivers are often close to each other, and then MIN works better.
+    nrf = NRF24(pi, ce=25, payload_size=9, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, pa_level=RF24_PA.MIN)
     nrf.set_address_bytes(len(address))
-    nrf.set_pa_level(RF24_PA.LOW)
     nrf.open_writing_pipe(address)
 
     # Display the content of NRF24L01 device registers.

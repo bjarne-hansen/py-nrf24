@@ -51,7 +51,8 @@ if __name__ == "__main__":
         sys.exit()
 
     # Create NRF24 object.
-    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
+    # PLEASE NOTE: PA level is set to MIN, because test sender/receivers are often close to each other, and then MIN works better.
+    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, pa_level=RF24_PA.MIN)
     nrf.set_address_bytes(len(client))
 
     # Open the server address as a writing pipe (request).

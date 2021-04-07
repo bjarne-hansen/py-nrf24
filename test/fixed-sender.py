@@ -1,12 +1,13 @@
-import pigpio
-import time
-from datetime import datetime
-from nrf24 import *
-import struct
-from os import environ as env
-from random import normalvariate
 import argparse
+from datetime import datetime
+from random import normalvariate
+import struct
 import sys
+import time
+import traceback
+
+from nrf24 import *
+import pigpio
 
 #
 # A simple NRF24L sender that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
@@ -20,7 +21,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="fixed-sender.py", description="Simple NRF24 transmitter with fixed payload.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
-    parser.add_argument('address', type=str, default='1SNSR', help="Address to listen to (1 to 5 characters).")
+    parser.add_argument('address', type=str, default='1SNSR', help="Address to send to (3 to 5 ASCII characters).")
     
     args = parser.parse_args()
     hostname = args.hostname
@@ -43,38 +44,48 @@ if __name__ == "__main__":
     nrf.set_address_bytes(len(address))
     nrf.set_pa_level(RF24_PA.LOW)
     nrf.open_writing_pipe(address)
-    
-    # Take a small break to let tranceiver settle and then show registers of the NRF24L01 device.
-    time.sleep(0.5)
+
+    # Display the content of NRF24L01 device registers.
     nrf.show_registers()
 
     count = 0
-    while True:
+    print(f'Send to {address}')
+    try:
+        while True:
 
-        # Emulate that we read temperature and humidity from a sensor, for example
-        # a DHT22 sensor.  Add a little random variation so we can see that values
-        # sent/received fluctuate a bit.
-        temperature = normalvariate(23.0, 0.5)
-        humidity = normalvariate(62.0, 0.5)
-        print(f'Sensor values: temperature={temperature}, humidity={humidity}')
+            # Emulate that we read temperature and humidity from a sensor, for example
+            # a DHT22 sensor.  Add a little random variation so we can see that values
+            # sent/received fluctuate a bit.
+            temperature = normalvariate(23.0, 0.5)
+            humidity = normalvariate(62.0, 0.5)
+            print(f'Sensor values: temperature={temperature}, humidity={humidity}')
 
-        # Pack temperature and humidity into a byte buffer (payload) using a protocol 
-        # signature of 0x01 so that the receiver knows that the bytes we are sending 
-        # are a temperature and a humidity (see "simple-receiver.py").
-        payload = struct.pack("<Bff", 0x01, temperature, humidity)
+            # Pack temperature and humidity into a byte buffer (payload) using a protocol 
+            # signature of 0x01 so that the receiver knows that the bytes we are sending 
+            # are a temperature and a humidity (see "simple-receiver.py").
+            payload = struct.pack("<Bff", 0x01, temperature, humidity)
 
-        # Send the payload to the address specified above.
-        nrf.reset_packages_lost()
-        nrf.send(payload)
-        while nrf.is_sending():
-            time.sleep(0.00004)
-        if nrf.get_packages_lost() == 0:
-            print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
-        else:
-            print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+            # Send the payload to the address specified above.
+            nrf.reset_packages_lost()
+            nrf.send(payload)
+            try:
+                nrf.wait_until_sent()
+            except TimeoutError:
+                print("Timeout waiting for transmission to complete.")
+                continue
+            
+            if nrf.get_packages_lost() == 0:
+                print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+            else:
+                print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
-        # Wait 10 seconds before sending the next reading.
-        time.sleep(10)
+            # Wait 10 seconds before sending the next reading.
+            time.sleep(10)
+
+    except:
+        traceback.print_exc()
+        nrf.power_down()
+        pi.stop()
 
 
 

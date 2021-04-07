@@ -1,6 +1,8 @@
 
+__init__        power_down(), power_up_rx()
 send()          power_up_tx()
-is_sending()    power_up_rx()
+
+
 
 
 RF24_PA                         - Enumeration of PA values.

@@ -1,14 +1,14 @@
-import pigpio
-import time
-from datetime import datetime
-from nrf24 import *
-import struct
-from os import environ as env
-from random import normalvariate
 import argparse
+from datetime import datetime
+from random import normalvariate, choice
+import struct
 import sys
-import random
+import time
+import traceback
 from uuid import UUID
+
+import pigpio
+from nrf24 import *
 
 #
 # A simple NRF24L client that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
@@ -19,12 +19,11 @@ if __name__ == "__main__":
     print("Python NRF24 Request/Reply Client Example.")
     
     # Parse command line argument.
-    parser = argparse.ArgumentParser(prog="rr-client.py", description="Simple NRF24 Request/Reply Client.")
+    parser = argparse.ArgumentParser(prog="rr-client.py", description="Simple NRF24 Request/Reply Client Example.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
     parser.add_argument('client', type=str, nargs='?', default='1CLNT', help="Address of this client (3 to 5 ASCII characters).")
     parser.add_argument('server', type=str, nargs='?', default='1SRVR', help="Address of server (3 to 5 ASCII characters).")
-    
     
     args = parser.parse_args()
     hostname = args.hostname
@@ -49,7 +48,7 @@ if __name__ == "__main__":
     pi = pigpio.pi(hostname, port)
     if not pi.connected:
         print("Not connected to Raspberry Pi ... goodbye.")
-        exit()
+        sys.exit()
 
     # Create NRF24 object.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS)
@@ -61,64 +60,76 @@ if __name__ == "__main__":
     # Open the client address as a reading pipe (response). 
     nrf.open_reading_pipe(RF24_RX_ADDR.P1, client)
     
+    # Display the content of NRF24L01 device registers.
     nrf.show_registers()
 
-    count = 0
-    while True:
+    try:
+        print(f'Send to {server}, with reply to {client}')
+        count = 0
+        while True:
 
-        # Pick a random command to send to the server.
-        command = random.choice([0x01, 0x02])
+            # Pick a random command to send to the server.
+            command = choice([0x01, 0x02])
 
-        # Pack the request.
-        request = struct.pack('<H6p', command, bytes(client, 'ascii'))
-        print(f'Request: command={command}, reply_to={client}, {":".join(f"{c:02x}" for c in request)}')
+            # Pack the request.
+            request = struct.pack('<H6p', command, bytes(client, 'ascii'))
+            print(f'Request: command={command}, reply_to={client}, {":".join(f"{c:02x}" for c in request)}')
+            
+            # Send the request.
+
+            nrf.reset_packages_lost()
+            nrf.send(request)
+            try:
+                nrf.wait_until_sent()
+            except:
+                print("Timeout waiting for transmission to complete.")
+                continue
+
+            if nrf.get_packages_lost() == 0:
+                print(f'Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}')
+            else:
+                print(f'Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}')
+
+            if nrf.get_packages_lost() == 0:
+                # If we successfully sent a request we expect to receive a response so fire up RX.
+                nrf.power_up_rx()
+
+                reply_start = time.monotonic()
+                while True:                    
+
+                    if nrf.data_ready():
+                        response = nrf.get_payload()
+
+                        if response[0] == 0x01:
+                            # The response is a response to a 0x01 command.
+                            command, uuid_bytes = struct.unpack('<H17p', response)
+                            uuid = UUID(bytes=uuid_bytes)
+                            print(f'Response: command={command}, uuid={uuid}')
+                            break
+
+                        elif response[0] == 0x02:
+                            # The response is a response to a 0x01 command.
+                            command, relay = struct.unpack('<H?', response)
+                            print(f'Response: command={command}, relay on={relay}')
+                            break
+
+                        else:
+                            # Invalid response.
+                            print('Invalid response received.')
+
+                    if time.monotonic() - reply_start > 1:
+                        # If we have waited more than 1 second on a response, we time out. 
+                        # This obviously depends on the application.
+                        print('Timeout waiting for response.')
+                        break
         
-        # Send the request.
-
-        nrf.reset_packages_lost()
-        nrf.send(request)
-        while nrf.is_sending():
-            time.sleep(0.0004)
-        if nrf.get_packages_lost() == 0:
-            print(f'Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}')
-        else:
-            print(f'Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}')
-
-        if nrf.get_packages_lost() == 0:
-            # If we successfully sent a request, we expect to receive a response.
-            reply_start = time.monotonic()
-            while True:                    
-
-                if nrf.data_ready():
-                    response = nrf.get_payload()
-
-                    if response[0] == 0x01:
-                        # The response is a response to a 0x01 command.
-                        command, uuid_bytes = struct.unpack('<H17p', response)
-                        uuid = UUID(bytes=uuid_bytes)
-                        print(f'Response: command={command}, uuid={uuid}')
-                        break
-
-                    elif response[0] == 0x02:
-                        # The response is a response to a 0x01 command.
-                        command, relay = struct.unpack('<H?', response)
-                        print(f'Response: command={command}, relay on={relay}')
-                        break
-
-                    else:
-                        # Invalid response.
-                        print('Invalid response received.')
-
-                if time.monotonic() - reply_start > 1:
-                    # If we have waited more than 1 second on a response, we time out. 
-                    # This obviously depends on the application.
-                    print('Timeout waiting for response.')
-                    break
-    
-        # Wait 10 seconds before sending the next request.
-        print('Wait 10 seconds before sending new request.')
-        time.sleep(10)
-
+            # Wait 10 seconds before sending the next request.
+            print('Wait 10 seconds before sending new request.')
+            time.sleep(10)
+    except:
+        traceback.print_exc()
+        nrf.power_down()
+        pi.stop()
 
 
 

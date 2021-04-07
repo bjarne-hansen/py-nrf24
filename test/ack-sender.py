@@ -1,6 +1,5 @@
 import argparse
 from datetime import datetime
-from os import environ as env
 from random import normalvariate
 import struct
 import sys
@@ -69,10 +68,13 @@ if __name__ == "__main__":
 
             # Send the payload to the address specified above.
             nrf.reset_packages_lost()
-            nrf.send(payload)
-            while nrf.is_sending():
-                time.sleep(0.0004)
-            
+            nrf.send(payload)            
+            try:
+                nrf.wait_until_sent()
+            except TimeoutError:
+                print("Timeout waiting for transmission to complete.")
+                continue
+
             if nrf.get_packages_lost() == 0:
                 # The package we sent was successfully received by the server.
                 print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")

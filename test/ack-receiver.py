@@ -1,6 +1,5 @@
 import argparse
 from datetime import datetime
-from os import environ as env
 import struct
 import sys
 import time

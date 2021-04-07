@@ -1,6 +1,7 @@
 import pigpio
 from enum import Enum, IntEnum
 from os import environ as env
+import time
 
 
 class RF24_PA(IntEnum):
@@ -814,14 +815,18 @@ class NRF24:
         else:            
             return True
 
+    def wait_until_sent(self):
+        start_wait = time.monotonic_ns()
+        while self.is_sending():
+            if start_wait - time.monotonic_ns() > 4250000:
+                raise TimeoutError('Timed out wating for send to complete.')
+            time.sleep(0.000250)
+            
     def is_sending(self):
         if self._power_tx > 0:
             status = self.get_status()
-            
             if status & (self.TX_DS | self.MAX_RT):
-                #self.power_up_rx()
                 return False
-                
             return True
         return False
 
@@ -845,11 +850,7 @@ class NRF24:
         return self._nrf_command(self.NOP)[0]
 
     def power_up_tx(self):
-        
         self._power_tx = 1
-        
-        #config = self.EN_CRC | self._crc_bytes | self.PWR_UP
-        #self._nrf_write_reg(self.CONFIG, config)
         config = self._nrf_read_reg(self.CONFIG, 1)[0]
         config &= (~self.PRIM_RX & 0xFF)                    # Disable receive.
         config |= self.PWR_UP                               # Enable power.
@@ -859,10 +860,7 @@ class NRF24:
         self.set_ce()
 
     def power_up_rx(self):
-        
         self._power_tx = 0
-        #config = self.EN_CRC | self._crc_bytes | self.PWR_UP | self.PRIM_RX
-        #self._nrf_write_reg(self.CONFIG, config)
         config = self._nrf_read_reg(self.CONFIG, 1)[0]
         self.unset_ce()
         self._nrf_write_reg(self.CONFIG, config | self.PWR_UP | self.PRIM_RX)        

@@ -817,6 +817,7 @@ class NRF24:
 
     def wait_until_sent(self):
         start_wait = time.monotonic_ns()
+        
         while self.is_sending():
             if time.monotonic_ns() - start_wait > 4250000:
                 raise TimeoutError('Timed out wating for send to complete.')

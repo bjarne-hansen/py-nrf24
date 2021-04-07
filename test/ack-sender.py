@@ -10,6 +10,40 @@ from uuid import UUID
 import pigpio
 from nrf24 import *
 
+
+def read_acknowledgement(nrf:NRF24):
+    # Attempt to read the acknowledgement package (see details below). If the acknowledgement package cannot be
+    # read return -1.  Alternatively, return the unsigned integer of the payload.
+    try:
+        nrf.wait_until_sent()
+
+    except TimeoutError:
+        print("Timeout")
+        nrf.flush_rx()
+        return -1
+        
+    # The transmission completed as normal, the TX_DS bit was set RX_DR is also set with the acknowledgement payload.
+    if nrf.get_packages_lost() == 0:    
+        # Check if an acknowledgement package is available.
+        if nrf.data_ready():
+            # Get payload.
+            payload = nrf.get_payload()
+            nrf.flush_rx()
+
+            if len(payload) == 4:
+                # If the payload is 4 bytes, we expect it to be an acknowledgement payload.
+                (next_id, ) = struct.unpack('<I', payload)
+                print(f"Acknowledgement: {next_id}")
+                return next_id
+            else:
+                # Not 4 bytes long then we consider it an invalid payload.
+                print("Invalid payload received.")
+                return -1
+        else:
+            # No data ready after all. Did the receiver actually send an acknowledgement?
+            print("No acknowledgement payload received.")
+            return -1
+
 #
 # A simple NRF24L sender that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
 # starts sending data on the address specified expecting an acknowledgement with a payload.  
@@ -44,7 +78,7 @@ if __name__ == "__main__":
     # PLEASE NOTE: PA level is set to MIN, because test sender/receivers are often close to each other, and then MIN works better.
     nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.ACK, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, pa_level=RF24_PA.MIN)
     nrf.set_address_bytes(len(address))
-    nrf.set_retransmission(5, 15)
+    nrf.set_retransmission(15, 15)
     nrf.open_writing_pipe(address)
 
     # Show registers.
@@ -69,38 +103,16 @@ if __name__ == "__main__":
 
             # Send the payload to the address specified above.
             nrf.reset_packages_lost()
-            nrf.send(payload)            
-            try:
-                nrf.wait_until_sent()
-            except TimeoutError:
-                print("Timeout waiting for transmission to complete.")
-                continue
+            nrf.send(payload)
+
+            # Wait for and read the acknowledgement.
+            next_id = read_acknowledgement(nrf)
 
             if nrf.get_packages_lost() == 0:
                 # The package we sent was successfully received by the server.
-                print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
-
-                # Check if an acknowledgement package is available.
-                if nrf.data_ready():
-                    # Get payload.
-                    pipe = nrf.data_pipe()
-                    payload = nrf.get_payload()
-
-                    # If the payload is 4 bytes, we expect it to be an acknowledgement payload.
-                    if len(payload) == 4:
-                        (next_id, ) = struct.unpack('<I', payload)
-                    else:
-                        next_id = -1
-
-                    # We have received some bytes ...
-                    print(f'Received: payload={":".join(f"{c:02x}" for c in payload)}, next_id={next_id}')
-                
-                else:
-                    # No acknowledgement package seems to be available.
-                    print('No acknowledgement package.')
+                print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}, next_id={next_id}")
             else:
-                # The package we sent was lost.
-                print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+                print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}, next_id={next_id}")
 
             # Wait 10 seconds before sending the next reading.
             time.sleep(10)

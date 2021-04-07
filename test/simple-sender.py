@@ -72,6 +72,8 @@ if __name__ == "__main__":
                 nrf.wait_until_sent()
             except TimeoutError:
                 print('Timeout waiting for transmission to complete.')
+                # Wait 10 seconds before sending the next reading.
+                time.sleep(10)
                 continue
             
             if nrf.get_packages_lost() == 0:

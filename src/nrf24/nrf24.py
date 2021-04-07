@@ -815,18 +815,23 @@ class NRF24:
         else:            
             return True
 
+    
     def wait_until_sent(self):
         start_wait = time.monotonic_ns()
         
         while self.is_sending():
-            if time.monotonic_ns() - start_wait > 4250000:
+            # Time out after 20 ms which should be more than necessary.
+            if time.monotonic_ns() - start_wait > 25000000: #4500000:
+                self.power_up_rx()
                 raise TimeoutError('Timed out wating for send to complete.')
+            # Wait 250µs before checking again. That is the retransmit delay.
             time.sleep(0.000250)
 
     def is_sending(self):
         if self._power_tx > 0:
             status = self.get_status()
             if status & (self.TX_DS | self.MAX_RT):
+                self.power_up_rx()
                 return False
             return True
         return False

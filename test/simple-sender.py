@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     # Create NRF24 object.
     # PLEASE NOTE: PA level is set to MIN, because test sender/receivers are often close to each other, and then MIN works better.
-    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, pa_level=RF24_PA.MIN)
+    nrf = NRF24(pi, ce=25, payload_size=RF24_PAYLOAD.DYNAMIC, channel=100, data_rate=RF24_DATA_RATE.RATE_250KBPS, pa_level=RF24_PA.LOW)
     nrf.set_address_bytes(len(address))
     nrf.open_writing_pipe(address)
     
@@ -72,6 +72,8 @@ if __name__ == "__main__":
                 nrf.wait_until_sent()
             except TimeoutError:
                 print('Timeout waiting for transmission to complete.')
+                print(nrf.format_status())
+                print(nrf.format_observe_tx())
                 # Wait 10 seconds before sending the next reading.
                 time.sleep(10)
                 continue
@@ -82,7 +84,7 @@ if __name__ == "__main__":
                 print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
             # Wait 10 seconds before sending the next reading.
-            time.sleep(10)
+            time.sleep(5)
     except:
         traceback.print_exc()
         nrf.power_down()

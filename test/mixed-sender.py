@@ -54,7 +54,7 @@ def send_dynamic_payload_message(nrf:NRF24, address, count):
 
     # Create a payload with (count % 32) + 1 bytes (each byte is 0x01).
     # This means a payload of 1..32 bytes.
-    payload = [0x01] * ((count % 32) + 1)
+    payload = [0xff] * ((count % 32) + 1)
 
     # Send the message and wait for it to be sent successfully or the maximum
     # number of retries have been reached.
@@ -78,19 +78,21 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(prog="simple-sender.py", description="Simple NRF24 Sender with Mixed Payload Sizes.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
-    parser.add_argument('address', type=str, nargs=2, help="Address to send to (5 ASCII characters).")
+    parser.add_argument('fixed', type=str, nargs='?', default='FTEST', help="Address to send fixed payloads to (5 ASCII characters).")
+    parser.add_argument('dynamic', type=str, nargs='?', default='DTEST', help="Address to send dynamic payloads to (5 ASCII characters).")
     
     args = parser.parse_args()
     hostname = args.hostname
     port = args.port
-    address = args.address
+    fixed = args.fixed
+    dynamic = args.dynamic
 
-    if not (len(address[0]) == 5):
-        print(f'Invalid address {address[0]}. Addresses must 5 ASCII characters.')
+    if not (len(fixed) == 5):
+        print(f'Invalid address {fixed}. Addresses must 5 ASCII characters.')
         sys.exit(1)
 
-    if not (len(address[1]) == 5):
-        print(f'Invalid address {address[1]}. Addresses must 5 ASCII characters.')
+    if not (len(dynamic) == 5):
+        print(f'Invalid address {dynamic}. Addresses must 5 ASCII characters.')
         sys.exit(1)
 
     # Connect to pigpiod
@@ -109,7 +111,7 @@ if __name__ == "__main__":
 
 
     try:
-        print(f'Send to {address[0]} (fixed) and {address[1]} (dynamic)')
+        print(f'Send to {fixed} (fixed) and {dynamic} (dynamic)')
         count = 0
 
         while True:
@@ -122,10 +124,10 @@ if __name__ == "__main__":
             print(f'Sensor values: temperature={temperature}, humidity={humidity}')
 
             # Send the message with the fixed payload size.
-            send_fixed_payload_message(nrf, address[0], temperature, humidity)
+            send_fixed_payload_message(nrf, fixed, temperature, humidity)
 
             # Send the message with the dynamic payload size.
-            send_dynamic_payload_message(nrf, address[1], count)
+            send_dynamic_payload_message(nrf, dynamic, count)
             
             # Increse message count.
             count += 1

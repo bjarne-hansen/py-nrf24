@@ -5,7 +5,8 @@ This package implement 2.4Ghz communication using NRF24L01+ modules on a Raspber
 ## Changes
 
 * **Version 2.0.0** - Released to PyPi.org (pending)
-   This version contains **breaking** changes compared to version 1.1.1.  Make sure to review [**CHANGES.md**](CHANGES.md) and make changes to you client code accordingly.
+
+    This version contains **breaking** changes compared to version 1.1.1.  Make sure to review [**CHANGES.md**](CHANGES.md) and make changes to you client code accordingly.
 * **Version 1.1.1** - Released to PyPi.org on September 20th, 2020.
 * **Version 1.1.0** - Released to PyPi.org on September 20th, 2020.
 * **Version 1.0.2** - Released to PyPi.org on May 8th, 2020.

@@ -40,7 +40,7 @@ the Raspberry Pi as shown in "Raspberry Pi with Dual NRF24L01+ Modules" below.
 
 | Command Line                 | Comments |
 | ---------------------------- | -------- |
-| <nobr>`python test/simple-sender.py`</nobr> | Emulates a process sending sensor readings every 10 seconds using a **dynamic** payload size (default sending address is `1SNSR`). |
+| `python test/simple-sender.py` | Emulates a process sending sensor readings every 10 seconds using a **dynamic** payload size (default sending address is `1SNSR`). |
 | <span style="white-space: nowrap;">`python test/simple-receiver.py`</span> | Emulates a receiving process receiving sensor readings from the corresponding sender using a **dynamic** payload size (default listening address `1SNSR`). |
 | <span style="white-space: nowrap;">`python test/fixed-sender.py`</span> | Emulates a process sending sensor readings every 10 seconds using a **fixed** payload size (default sending address is `1SNSR`). |
 | <span style="white-space: nowrap;">`python test/fixed-receiver.py`</span> | Emulates a receiving process receiving sensor readings from the corresponding sender using a **fixed** payload size (default listening address `1SNSR`). |

@@ -1,4 +1,9 @@
 
+__init__        power_down(), power_up_rx()
+send()          power_up_tx()
+
+
+
 
 RF24_PA                         - Enumeration of PA values.
 RF24_DATA_RATE                  - Enumeration of data rates.
@@ -7,72 +12,130 @@ RF24_PAYLOAD                    - Enumeration of payload options.
 SPI_CHANNEL                     - Enumeration of SPI channels.
 RF24_RX_ADDR                    - Enumeration of NRF24L01 receiver channels (pipes).
 
-from_config()                   - DEPRECATED
-
 __init__
 
-set_channel(channel)
-set_payload_size(size)
-set_padding(padding)
-set_address_bytes(bytes)
-set_crc_bytes(bytes)
-set_data_rate(rate)
-set_pa_level(level)
-get_pa_level()              
+_pi                 Reference to GPIO daemon
+_ce_pin             CE PIN.
+_spi_handle         SPI handle created from spi_channel and spi_speed
+_power_tx           Keep track of if we are in transmission mode (__init__, is_sending, power_up_tx, power_up_rx)
 
-get_spi_handle()
-show_registers()
+_payload_size       Same payload size for all pipes. ACK, DYNAMIC, 1..32 (set_payload_size, send, get_payload, _configure_payload)
+_address_width      Address width. (__init__, set_address_bytes, open_writing_pipe (padding), open_reading_pipe (padding),)
+_crc_bytes          CRC bytes (__init__, set_crc_bytes, power_up_tx, power_up_rx, power_down)
+_padding            Padding for address and payload. (__init__, set_padding, send, open_writing_pipe, open_reading_pipe,)
 
-send(message)                   - Send message.
-get_retries()                   - Get number of retries.
-get_packages_lost()             - Get number of packages lost (since the counter was last reset)
-reset_packages_lost()           - Reset number of packages lost to 0.
-reset_plos()                    - Reset number of packages lost to 0.
-ack_payload()                   - Send acknowledgement payload.
+DEFAULTS:
+PI              -
+CE              -
+spi_channel     MAIN_CE0
+spi_speed       50e3
+channel:        76
+retransmission: (1, 500)
+payload_size:   MAX=32
+padding:        ' '
+address_bytes:  5
+crc_bytes:      2
+data_rate:      RF24_DATA_RATE.RATE_1MBPS
+pa_level:       RF24_PA.MAX
 
-open_writing_pipe(addr)         - Open writing pipe.
-get_writing_address()           - Get the writing address.
 
-open_reading_pipe(pipe, addr)   - Open reading pipe (pipe [0..5] || [NRF24_RX_ADDR.P0..NRF24_RX_ADDR.P5])
-get_reading_address(pipe)       - Get the reading address for the pipe specified.
+INITIALIZATION:
+===============
++ set_channel(channel)
++ get_channel()
+
++ set_retansmission(delay, retries)
++ get_retransmission()
+
++ set_payload_size(size)
++ get_payload_size()
+
++ set_padding(padding)
+- get_padding()
+
++ set_address_bytes(bytes)
++ get_address_bytes()
+
++ disable_crc()
++ enable_crc()
++ is_crc_enabled()
++ set_crc_bytes(bytes)
++ get_crc_bytes()
+
++ set_data_rate(rate)
++ get_data_rate()
+
++ set_pa_level(level)
++ get_pa_level()              
+
++ get_spi_handle
+
++ show_registers()
+
+SENDING:
+========
++ open_writing_pipe(addr)         - Open writing pipe.
++ get_writing_address()           - Get the writing address.
+
++ send(message)                   - Send message.
++ get_retries()                   - Get number of retries done while sending message.
++ get_packages_lost()             - Get number of packages lost (since the counter was last reset)
++ reset_packages_lost()           - Reset number of packages lost to 0.
++ reset_plos()                    - Reset number of packages lost to 0.
+
++ ack_payload()                   - Send acknowledgement payload.
+
++ is_sending()                    - Boolean indicating of the module is sending (poll until False).
 
 
-set_local_address(address)      - DEPRECATED
-set_remote_address(address)     - DEPRECATED
+RECEIVING:
+==========
++ open_reading_pipe(pipe, addr)   - Open reading pipe (pipe [0..5] || [NRF24_RX_ADDR.P0..NRF24_RX_ADDR.P5])
 
-data_ready_pipe()               - Get (boolean, pipe) telling if data is ready, and on what pipe.
-data_pipe()                     - Get pipe that has data ready.
-data_ready()                    - Get boolean indicating if data is ready.
-is_sending()                    - Boolean indicating of the module is sending.
-get_payload()                   - Get the payload available.
-get_status()                    - ?????????
++ close_reading_pipe(pipe)        - Closes (disables) the reading pipe specified.
++ close_all_reading_pipes():      - Close (disable) all reading pipes.
++ reset_reading_pipes()           - Reset reading pipes to default valie (P0 and P1 enabled)
 
-power_up_tx()                   - ?????????
-power_up_rx()                   - ?????????
-power_down()                    - ?????????
++ get_reading_address(pipe)       - Get the reading address for the pipe specified.
 
-set_ce()                        - Set CE PIN high. 
-unset_ce()                      - Set CE PIN low.
++ data_ready()                    - Get boolean indicating if data is ready.
++ data_pipe()                     - Get pipe that has data ready.
++ data_ready_pipe()               - Get (boolean, pipe) telling if data is ready, and on what pipe.
++ get_payload()                   - Get the payload available.
 
-flush_rx()                      - Flush read buffers.
-flush_tx()                      - Flush write buffers.
++ get_status()                    - Data ready, data sent, max retries, rx pipe, tx full
 
-format_config()
-format_en_aa()
-format_en_rxaddr()
-format_setup_aw()
-format_setup_retr()
-format_rf_ch()
-format_rf_setup()
-format_status()
-format_observe_tx()
-format_rpd()
-format_rx_addr_px()
-format_tx_addr()
-format_rx_pw_px()
-format_fifo_status()
-format_dynpd()
-format_dynpd()
+
++ power_up_tx()                   - Powers up the NRF24L01 and places it in TX mode.
++ power_up_rx()                   - Powers up the NRF24L01 and places it in RX mode.
++ power_down()                    - Powers down the NRF24L01.
+
+
+LOW LEVEL:
+==========
++ get_spi_handle()
+
++ set_ce()                        - Set CE PIN high. 
++ unset_ce()                      - Set CE PIN low.
++ flush_rx()                      - Flush read buffers.
++ flush_tx()                      - Flush write buffers.
+
++ format_config()
++ format_en_aa()
++ format_en_rxaddr()
++ format_setup_aw()
++ format_setup_retr()
++ format_rf_ch()
++ format_rf_setup()
++ format_status()
++ format_observe_tx()
++ format_rpd()
++ format_rx_addr_px()
++ format_tx_addr()
++ format_rx_pw_px()
++ format_fifo_status()
++ format_dynpd()
++ format_dynpd()
 
 
 PA level

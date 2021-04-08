@@ -11,14 +11,30 @@ from nrf24 import *
 
 #
 # A simple NRF24L sender that connects to a PIGPIO instance on a hostname and port, default "localhost" and 8888, and
-# starts sending data on the address specified.  Use the companion program "simple-receiver.py" to receive the data
-# from it on a different Raspberry Pi.
+# starts sending data on the address specified.  Use the companion program "int-receiver.py" or "simple-receiver.py" to 
+# receive the data from it on a different Raspberry Pi.
 #
+def gpio_interrupt(gpio, level, tick):
+
+    # Interrupt information.
+    print(f"Interrupt: gpio={gpio}, level={['LOW', 'HIGH', 'NONE'][level]}, tick={tick}")
+
+    # Check result of last send operation.
+    if nrf.get_packages_lost() == 0:
+        print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+    else:
+        print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
+    
+    # Reset and enter RX mode.
+    nrf.reset_packages_lost()
+    nrf.power_up_rx()
+
+
 if __name__ == "__main__":    
-    print("Python NRF24 Simple Sender Example.")
+    print("Python NRF24 Simple Interrupt Based Sender Example.")
     
     # Parse command line argument.
-    parser = argparse.ArgumentParser(prog="simple-sender.py", description="Simple NRF24 Sender Example.")
+    parser = argparse.ArgumentParser(prog="int-sender.py", description="NRF24 Interrupt Based Sender Example.")
     parser.add_argument('-n', '--hostname', type=str, default='localhost', help="Hostname for the Raspberry running the pigpio daemon.")
     parser.add_argument('-p', '--port', type=int, default=8888, help="Port number of the pigpio daemon.")
     parser.add_argument('address', type=str, nargs='?', default='1SNSR', help="Address to send to (3 to 5 ASCII characters).")
@@ -38,6 +54,9 @@ if __name__ == "__main__":
     if not pi.connected:
         print("Not connected to Raspberry Pi ... goodbye.")
         sys.exit()
+
+    # Setup callback for interrupt on falling edge.
+    pi.callback(24, pigpio.FALLING_EDGE, gpio_interrupt)
 
     # Create NRF24 object.
     # PLEASE NOTE: PA level is set to MIN, because test sender/receivers are often close to each other, and then MIN works better.
@@ -68,27 +87,15 @@ if __name__ == "__main__":
             # Send the payload to the address specified above.
             nrf.reset_packages_lost()
             nrf.send(payload)
-            try:
-                nrf.wait_until_sent()
-            except TimeoutError:
-                print('Timeout waiting for transmission to complete.')
-                # Wait 10 seconds before sending the next reading.
-                time.sleep(10)
-                continue
-            
-            if nrf.get_packages_lost() == 0:
-                print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
-            else:
-                print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
-            # Wait 10 seconds before sending the next reading.
-            time.sleep(10)
+            # When the send is complete (successful or failed), the NRF24L01+ module will trigger an
+            # interrupt by pulling the INT pin low.  We detect that with the callback on the falling
+            # endge as configured above.
+            
+            # Wait 5 seconds before sending the next reading.
+            time.sleep(5)
+
     except:
         traceback.print_exc()
         nrf.power_down()
         pi.stop()
-
-
-
-
-

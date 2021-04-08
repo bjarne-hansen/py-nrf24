@@ -1,11 +1,13 @@
 
 
-- ADDED: get_writing_address()
-- ADDED: get_reading_address(pipe)
-- REMOVED: set_local_address(address) - use open_reading_pipe instead.
-- REMOVED: set_remote_address(address) - use open_writing_pipe instead.
-- REMOVED: from_config( ... ) - write your own configuration code.
-- ADDED: get_retries()
-- ADDED: get_packages_lost()
-- ADDED: reset_packages_lost()
+TODO:
+=====
+- implement a soft reset.
 
+- Experiment with acknowledgement payload.
+
+- Experiment with interrupt. Implement mask_interrupt(MASK_RX_DR | MASK_RX_DR | MASK_MAX_RT )
+    - disable_all_interrupts, enable_all_interrupts
+    - disable_receive_interrupt, enable_receive_interrupt,
+    - disable_send_interrupt, enable_send_interrupt
+    - disable_retransmit_interrupt, enable_retransmit_interrupt

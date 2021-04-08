@@ -85,6 +85,7 @@ All the examples, except the `multi-sender.py` and `multi-receiver.py` ones will
 The `multi-sender.py` and `multi-receiver.py` examples requires two NRF24L01+ modules wired to each Raspberry Pi.
 
 <div style="padding: 40px" align="center">
+![](doc/pizw-nrf24-2_bb.png)
 <img src="doc/pizw-nrf24-2_bb.png" alt="alt text" width="400" >
 </div>
 

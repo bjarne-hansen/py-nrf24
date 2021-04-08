@@ -4,9 +4,10 @@ This package implement 2.4Ghz communication using NRF24L01+ modules on a Raspber
 
 ## Changes
 
-* **Version 2.0.0** - Released to PyPi.org (pending)
+* **Version 2.0.0** - Released to PyPi.org on April 8th, 2021.
 
     This version contains **breaking** changes compared to version 1.1.1.  Make sure to review [**CHANGES.md**](CHANGES.md) and make changes to you client code accordingly.
+    
 * **Version 1.1.1** - Released to PyPi.org on September 20th, 2020.
 * **Version 1.1.0** - Released to PyPi.org on September 20th, 2020.
 * **Version 1.0.2** - Released to PyPi.org on May 8th, 2020.
@@ -52,23 +53,23 @@ below, except the `multi-sender.py` and `multi-receiver.py` examples which requi
 the Raspberry Pi as shown in "Raspberry Pi with Dual NRF24L01+ Modules" below.
 
 
-
-| Command Line                 | Comments |
-| ---------------------------- | -------- |
+| Command Line | Comments |
+| ------------ | -------- |
 | `python test/simple-sender.py` | Emulates a process sending sensor readings every 10 seconds using a **dynamic** payload size (default sending address is `1SNSR`). |
-| <span style="white-space: nowrap;">`python test/simple-receiver.py`</span> | Emulates a receiving process receiving sensor readings from the corresponding sender using a **dynamic** payload size (default listening address `1SNSR`). |
-| <span style="white-space: nowrap;">`python test/fixed-sender.py`</span> | Emulates a process sending sensor readings every 10 seconds using a **fixed** payload size (default sending address is `1SNSR`). |
-| <span style="white-space: nowrap;">`python test/fixed-receiver.py`</span> | Emulates a receiving process receiving sensor readings from the corresponding sender using a **fixed** payload size (default listening address `1SNSR`). |
-| <span style="white-space: nowrap;">`python test/mixed-sender.py`</span>| Shows an example of sending both **fixed** and **dynamic** payload sized messages. Suggested address for fixed messages is `FTEST`, and the suggested address for dynamic messages is `DTEST`. |
-| <span style="white-space: nowrap;">`python test/mixed-receiver.py` </span> | Shows how to configure reading pipes using both **fixed** and **dynamic** message sizes at the same time. |
-| <span style="white-space: nowrap;">`python test/int-sender.py`</span> | Shows how to use interrupt to detect that a message has been sent (default sending address `1SNSR`). |
-| <span style="white-space: nowrap;">`python test/int-receiver.py`</span> | Shows how to use interrupt to detect that a message has been received (default listening address `1SNSR`). |
-| <span style="white-space: nowrap;">`python test/rr-client.py`</span> | Shows example of how to send a request to a server with a reply to address included in the message, and then switching to RX mode to receive the response from the server (default server (TX) address is `1SRVR` and default reply to address (RX) is `1CLNT`) |
-| <span style="white-space: nowrap;">`python test/rr-server.py`</span> | Shows example of a server listening for requests and returning a response to the client (default server (RX) address is `1SRVR`). |
-| <span style="white-space: nowrap;">`python test/ack-sender.py`</span> | Sends message to the receiver every 10 seconds, expecting a payload sent back with the acknowledgement (default sender address `1ACKS`). |
-| <span style="white-space: nowrap;">`python test/ack-receiver.py`</span> | Receives message and sends acknowledgement message with payload (default listen address `1ACKS`).|
-| <span style="white-space: nowrap;">`python test/multi-sender.py`</span> | Sends messages using 2 x NRF24L01+ modules connected to the same Raspberry Pi (defult send addresses `1SRVR` and `2SRVR`). |
-| <span style="white-space: nowrap;">`python test/multi-sender.py`</span> | receives messages using 2 x NRF24L01+ modules connected to the same Raspberry Pi (defult listen addresses `1SRVR` and `2SRVR`). |
+| `python test/simple-receiver.py` | Emulates a receiving process receiving sensor readings from the corresponding sender using a **dynamic** payload size (default listening address `1SNSR`). |
+| `python test/fixed-sender.py` | Emulates a process sending sensor readings every 10 seconds using a **fixed** payload size (default sending address is `1SNSR`). |
+| `python test/fixed-receiver.py` | Emulates a receiving process receiving sensor readings from the corresponding sender using a **fixed** payload size (default listening address `1SNSR`). |
+| `python test/mixed-sender.py` | Shows an example of sending both **fixed** and **dynamic** payload sized messages. Suggested address for fixed messages is `FTEST`, and the suggested address for dynamic messages is `DTEST`. |
+| `python test/mixed-receiver.py` | Shows how to configure reading pipes using both **fixed** and **dynamic** message sizes at the same time. |
+| `python test/int-sender.py` | Shows how to use interrupt to detect that a message has been sent (default sending address `1SNSR`). |
+| `python test/int-receiver.py` | Shows how to use interrupt to detect that a message has been received (default listening address `1SNSR`). |
+| `python test/rr-client.py` | Shows example of how to send a request to a server with a reply to address included in the message, and then switching to RX mode to receive the response from the server (default server (TX) address is `1SRVR` and default reply to address (RX) is `1CLNT`) |
+| `python test/rr-server.py` | Shows example of a server listening for requests and returning a response to the client (default server (RX) address is `1SRVR`). |
+| `python test/ack-sender.py` | Sends message to the receiver every 10 seconds, expecting a payload sent back with the acknowledgement (default sender address `1ACKS`). |
+| `python test/ack-receiver.py` | Receives message and sends acknowledgement message with payload (default listen address `1ACKS`).|
+| `python test/multi-sender.py` | Sends messages using 2 x NRF24L01+ modules connected to the same Raspberry Pi (defult send addresses `1SRVR` and `2SRVR`). |
+| `python test/multi-sender.py` | receives messages using 2 x NRF24L01+ modules connected to the same Raspberry Pi (defult listen addresses `1SRVR` and `2SRVR`). |
+
 
 ## Wiring
 

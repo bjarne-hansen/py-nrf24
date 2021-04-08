@@ -106,15 +106,18 @@ if __name__ == "__main__":
                 print("Timeout. No acknowledgement.")
                 next_id = -1
 
-               
-            if nrf.get_packages_lost() == 0:
-                # The package we sent was successfully received by the server.
-                print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}, next_id={next_id}")
-            else:
-                print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}, next_id={next_id}")
-        
-            # Wait 5 seconds before sending the next reading.
-            time.sleep(5)
+
+            if timeout:
+                print(f'Error: timeout while waiting for acknowledgement package. next_id={next_id}')
+            else:  
+                if nrf.get_packages_lost() == 0:
+                    # The package we sent was successfully received by the server.
+                    print(f"Success: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}, next_id={next_id}")
+                else:
+                    print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}, next_id={next_id}")
+            
+            # Wait 10 seconds before sending the next reading.
+            time.sleep(10)
 
     except Exception as e:
         traceback.print_exc()

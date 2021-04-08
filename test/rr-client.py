@@ -84,6 +84,8 @@ if __name__ == "__main__":
                 nrf.wait_until_sent()
             except:
                 print("Timeout waiting for transmission to complete.")
+                print('Wait 10 seconds before sending new request.')
+                time.sleep(10)
                 continue
 
             if nrf.get_packages_lost() == 0:

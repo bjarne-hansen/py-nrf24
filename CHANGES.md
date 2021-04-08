@@ -79,5 +79,7 @@ as well.
 
 * **Added** NRF24 contructor parameter `pa_level` with a default of `RF24_PA.MAX`.
 
+* **Added** `wait_until_sent` method polling the status of NRF24L01 module until package has been sent or a timeout occurs.
+
 
 

@@ -72,8 +72,6 @@ if __name__ == "__main__":
                 nrf.wait_until_sent()
             except TimeoutError:
                 print('Timeout waiting for transmission to complete.')
-                print(nrf.format_status())
-                print(nrf.format_observe_tx())
                 # Wait 10 seconds before sending the next reading.
                 time.sleep(10)
                 continue
@@ -84,7 +82,7 @@ if __name__ == "__main__":
                 print(f"Error: lost={nrf.get_packages_lost()}, retries={nrf.get_retries()}")
 
             # Wait 10 seconds before sending the next reading.
-            time.sleep(5)
+            time.sleep(10)
     except:
         traceback.print_exc()
         nrf.power_down()

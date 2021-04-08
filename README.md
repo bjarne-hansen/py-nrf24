@@ -76,20 +76,13 @@ the Raspberry Pi as shown in "Raspberry Pi with Dual NRF24L01+ Modules" below.
 
 All the examples, except the `multi-sender.py` and `multi-receiver.py` ones will run with the following wiring of a single NRF24L01+ module.
 
-<div style="padding: 40px" align="center">
-<img src="doc/pizw-nrf24-1_bb.png" alt="alt text" width="400" >
-</div>
+![Alt](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-1_bb.png "Raspberry Pi with Single NRF24L01+ Module")
 
 ### Raspberry Pi with Dual NRF24L01+ Modules
 
 The `multi-sender.py` and `multi-receiver.py` examples requires two NRF24L01+ modules wired to each Raspberry Pi.
 
 ![Alt](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-2_bb.png "Raspberry Pi with Dual NRF24L01+ Modules")
-
-<div style="padding: 40px" align="center">
-![Alt](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-2_bb.png "Raspberry Pi with Dual NRF24L01+ Modules")
-</div>
-
 
 
 

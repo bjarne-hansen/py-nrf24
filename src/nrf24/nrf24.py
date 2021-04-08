@@ -159,7 +159,6 @@ class SPI_CHANNEL(IntEnum):
             raise ValueError(f'{value} ({type(value)}) is not an SPI_CHANNEL value.')
     
 
-
 class RF24_RX_ADDR(IntEnum):
     P0 = 0x0a,
     P1 = 0x0b,
@@ -167,8 +166,6 @@ class RF24_RX_ADDR(IntEnum):
     P3 = 0x0d,
     P4 = 0x0e,
     P5 = 0x0f
-
-
 
 
 class NRF24:
@@ -201,10 +198,9 @@ class NRF24:
     +----------+--------+---------+--------+-----------------------------+
     """
     
-    TX = 0
-    RX = 1
+    #TX = 0
+    #RX = 1
 
-    
     def __init__(self,
                  pi,                                    # pigpio Raspberry PI connection
                  ce,                                    # GPIO for chip enable
@@ -218,7 +214,7 @@ class NRF24:
                  address_bytes=5,                       # RX/TX address length in bytes
                  crc_bytes=RF24_CRC.BYTES_2,            # Number of CRC bytes
                  pad=32,                                # Value used to pad short messages
-                 pa_level=RF24_PA.MAX
+                 pa_level=RF24_PA.MAX                   # Set PA level.
                  ):
 
         """
@@ -328,7 +324,6 @@ class NRF24:
         # RF24_PAYLOAD.ACK = -1, RF24_PAYLOAD.DYNAMIC = 0, RF24_PAYLOAD.MIN = 1, RF24_PAYLOAD.MAX = 32
         assert RF24_PAYLOAD.ACK <= payload_size <= RF24_PAYLOAD.MAX
         self._payload_size = payload_size
-        #self._configure_payload()
 
 
     def get_payload_size(self):
@@ -466,7 +461,6 @@ class NRF24:
 
 
     def get_pa_level(self):
-        #return (read_register(RF_SETUP) & (_BV(RF_PWR_LOW) | _BV(RF_PWR_HIGH))) >> 1;
         value = self._nrf_read_reg(NRF24.RF_SETUP, 1)[0]
         value &= (NRF24.RF_PWR_LOW | NRF24.RF_PWR_HIGH)
         value >>= 1
@@ -498,6 +492,7 @@ class NRF24:
         print(self.format_feature())
         print("----------")
 
+
     def _make_fixed_width(self, msg, width, pad):
         if isinstance(msg, str):
             msg = map(ord, msg)
@@ -509,6 +504,7 @@ class NRF24:
         else:
             msg.extend([pad] * (width - len(msg)))
             return msg
+
 
     def send(self, data):
         # We expect a list of byte values to be sent.  However, popular types
@@ -539,13 +535,16 @@ class NRF24:
         arc = v & 15
         return arc
 
+
     def get_packages_lost(self):
         v = self._nrf_read_reg(NRF24.OBSERVE_TX, 1)[0]
         plos = (v >> 4) & 15
         return plos
 
+
     def reset_packages_lost(self):
         self.reset_plos()
+
 
     def reset_plos(self):
         v = self._nrf_read_reg(NRF24.RF_CH, 1)[0]
@@ -553,10 +552,7 @@ class NRF24:
         self._nrf_write_reg(NRF24.RF_CH, v)
         self.set_ce()
 
-    # Changed 2020-05-01, Bjarne Hansen
-    # WAS:
-    # def ack_payload(self, data):
-    #     self._nrf_command([self.W_ACK_PAYLOAD] + data)
+
     def ack_payload(self, pipe, data):
         # We expect a list of byte values to be sent.  However, popular types
         # such as string, integer, bytes, and bytearray are handled automatically using
@@ -576,8 +572,8 @@ class NRF24:
         if (pipe < NRF24.RX_ADDR_P0 or pipe > NRF24.RX_ADDR_P5):
             raise ValueError(f"pipe out of range ({NRF24.RX_ADDR_P0:02x} <= pipe <= and {NRF24.RX_ADDR_P5:02x}).")
 
-
         self._nrf_command([self.W_ACK_PAYLOAD | ((pipe - RF24_RX_ADDR.P0) & 0x07)] + data)
+
 
     def make_address(self, address):
         
@@ -615,26 +611,7 @@ class NRF24:
         # Update the transmission address and P0 as the acknowledgement address.
         self.unset_ce()                                             # Enter standby.
         self._nrf_write_reg(self.TX_ADDR, addr)                     # Set the transmission address.
-
-        # self._nrf_write_reg(RF24_RX_ADDR.P0, addr)                  # Write transmission address as receiving address P0 for ACK.        
-        # self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)    # Enable reception on pipe P0
-        # self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)            # Enable auto-acknowledgement.
-        
-        self._open_reading_pipe(RF24_RX_ADDR.P0, addr, size)          # Open P0 for reading the acknowledgement.
-
-        # >>> Experiment
-        # dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0] 
-        # disable = ~enable & 0xFF  
-        # self._nrf_write_reg(NRF24.DYNPD, dynpd & disable)                                  # Disable dynamic payload.
-        # self._nrf_write_reg(NRF24.RX_PW_P0 + (NRF24.RX_ADDR_P0 - NRF24.RX_ADDR_P0), 9)   # Set size of payload.
-        # <<<
-        # >>>
-        # dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0] 
-        # self._nrf_write_reg(NRF24.RX_PW_P0 + (NRF24.RX_ADDR_P0 - NRF24.RX_ADDR_P0), 0)      # Set size of payload to 0.
-        # self._nrf_write_reg(NRF24.DYNPD, dynpd | enable)                        # Enable dynamic payload.
-        # self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)                    # Enable dynamic payload.            
-        # <<<
-    
+        self._open_reading_pipe(RF24_RX_ADDR.P0, addr, size)         # Open P0 for reading the acknowledgement.
         self.set_ce()                                               # Leave standby.
 
 
@@ -671,13 +648,12 @@ class NRF24:
             else:
                 self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY) # Enable dynamic payload and acknowledgement payload feature.
 
-        self._nrf_write_reg(pipe, address)                                             # Set address for pipe.
+        self._nrf_write_reg(pipe, address)                                          # Set address for pipe.
         self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)                            # Enable auto-acknowledgement.
         self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)                    # Enable reception on pipe.      
 
 
-    def open_reading_pipe(self, pipe, address, size=None):
-    
+    def open_reading_pipe(self, pipe, address, size=None):    
         # Validate pipe input.
         if not (isinstance(pipe, int) or isinstance(pipe, RF24_RX_ADDR)):
             raise ValueError(f"pipe must be int or RF24_RX_ADDR enum.")
@@ -701,35 +677,6 @@ class NRF24:
         self._open_reading_pipe(pipe, addr, size)
         self.set_ce()
 
-        # # Update address on NRF24L01 module.
-        # en_rxaddr = self._nrf_read_reg(NRF24.EN_RXADDR, 1)[0]                       # Get currently enabled pipes.
-        # dynpd = self._nrf_read_reg(NRF24.DYNPD, 1)[0]                               # Get currently enabled dynamic payload.
-        # en_aa = self._nrf_read_reg(NRF24.EN_AA, 1)[0]                               # Get currently enabled auto-acknowledgement.
-        
-        # enable = 1 << (pipe - NRF24.RX_ADDR_P0)                                     # Calculate "enable" value
-        # disable = ~enable & 0xFF                                                    # Calculate "disable" mask.
-
-        # self.unset_ce()                                                             # Enter standby mode.
-        
-        # if RF24_PAYLOAD.MIN <= size <= RF24_PAYLOAD.MAX:
-        #     # Static payload size.
-        #     self._nrf_write_reg(NRF24.DYNPD, dynpd & disable)                       # Disable dynamic payload.
-        #     self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), size)   # Set size of payload.
-        # elif size == RF24_PAYLOAD.DYNAMIC or RF24_PAYLOAD.ACK:
-        #     # Dynamic payload size / dynamic payload size with acknowledgement payload.
-        #     self._nrf_write_reg(NRF24.RX_PW_P0 + (pipe - NRF24.RX_ADDR_P0), 0)      # Set size of payload to 0.
-        #     self._nrf_write_reg(NRF24.DYNPD, dynpd | enable)                        # Enable dynamic payload.
-        #     if size == RF24_PAYLOAD.DYNAMIC:
-        #         self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)                    # Enable dynamic payload.
-        #     else:
-        #         self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY) # Enable dynamic payload and acknowledgement payload feature.
-
-        # self._nrf_write_reg(pipe, addr)                                             # Set address for pipe.
-        # self._nrf_write_reg(NRF24.EN_AA, en_aa | enable)                            # Enable auto-acknowledgement.
-        # self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr | enable)                    # Enable reception on pipe.      
-
-        # self.set_ce()                                                               # Leave standby mode.
-
         
     def close_reading_pipe(self, pipe):        
         # We accept pipe addresses 0..5 or RX_ADDR_P0..RX_ADDR_P5
@@ -750,18 +697,21 @@ class NRF24:
         self._nrf_write_reg(NRF24.EN_RXADDR, en_rxaddr & mask)
         self.set_ce()
 
+
     def close_all_reading_pipes(self):
         # Close all reading pipes. 
         # PLEASE NOTE: This will disable acknowledgements for transmission on P0.
         self.unset_ce()
         self._nrf_write_reg(NRF24.EN_RXADDR, 0)
         self.set_ce()
-    
+
+
     def reset_reading_pipes(self):
         # Resets reading pipes to standard configuration as per product sheet. 
         self.unset_ce()
         self._nrf_write_reg(NRF24.EN_RXADDR, 0b00000011)
         self.set_ce()
+
 
     def get_reading_address(self, pipe):
         # Validate pipe input.
@@ -784,7 +734,6 @@ class NRF24:
             return bytes(p1)[0:self._address_width]
 
 
-
     def data_ready_pipe(self):
         status = self.get_status()
         pipe = (status >> 1) & 0x07
@@ -798,13 +747,14 @@ class NRF24:
         else:            
             return True, pipe
 
+
     def data_pipe(self):
         status = self.get_status()
         pipe = (status >> 1) & 0x07
         return pipe
 
-    def data_ready(self):
-        
+
+    def data_ready(self):        
         status = self.get_status()
         if status & self.RX_DR:
             return True
@@ -816,16 +766,18 @@ class NRF24:
             return True
 
     
-    def wait_until_sent(self):
+    def wait_until_sent(self, timeout_ns=100000000):
+        # Time out after 100 ms should ensure that we do not abandon good communication.
         start_wait = time.monotonic_ns()
-        
         while self.is_sending():
-            # Time out after 100 ms which should be more than necessary.
-            if time.monotonic_ns() - start_wait > 100000000: #25000000: #4500000:
+            
+            if time.monotonic_ns() - start_wait > timeout_ns: 
                 self.power_up_rx()
                 raise TimeoutError('Timed out wating for send to complete.')
+
             # Wait 250µs before checking again. That is the retransmit delay.
             time.sleep(0.000250)
+
 
     def is_sending(self):
         if self._power_tx > 0:
@@ -838,7 +790,6 @@ class NRF24:
 
 
     def get_payload(self):
-
         if self._payload_size < RF24_PAYLOAD.MIN: 
             # dynamic payload
             bytes_count = self._nrf_command([self.R_RX_PL_WID, 0])[1]
@@ -852,8 +803,10 @@ class NRF24:
         self.set_ce()       # added
         return d
 
+
     def get_status(self):
         return self._nrf_command(self.NOP)[0]
+
 
     def power_up_tx(self):
         self._power_tx = 1
@@ -865,6 +818,7 @@ class NRF24:
         self._nrf_write_reg(self.STATUS, self.RX_DR | self.TX_DS | self.MAX_RT)
         self.set_ce()
 
+
     def power_up_rx(self):
         self._power_tx = 0
         config = self._nrf_read_reg(self.CONFIG, 1)[0]
@@ -873,36 +827,44 @@ class NRF24:
         self._nrf_write_reg(self.STATUS, self.RX_DR | self.TX_DS | self.MAX_RT)
         self.set_ce()
 
+
     def power_down(self):
         config = self._nrf_read_reg(self.CONFIG, 1)[0]
         mask = ~self.PWR_UP & 0xFF
         self.unset_ce()
         self._nrf_write_reg(self.CONFIG, config & mask)
-        #self._nrf_write_reg(self.CONFIG, self.EN_CRC | self._crc_bytes)
+
 
     def set_ce(self):
         self._pi.write(self._ce_pin, 1)
 
+
     def unset_ce(self):
         self._pi.write(self._ce_pin, 0)
+
 
     def flush_rx(self):
         self._nrf_command(self.FLUSH_RX)
 
+
     def flush_tx(self):
         self._nrf_command(self.FLUSH_TX)
+
 
     def _nrf_xfer(self, data):
         b, d = self._pi.spi_xfer(self._spi_handle, data)
         return d
+
 
     def _nrf_command(self, arg):
         if type(arg) is not list:
             arg = [arg]
         return self._nrf_xfer(arg)
 
+
     def _nrf_read_reg(self, reg, count):
         return self._nrf_xfer([reg] + [0] * count)[1:]
+
 
     def _nrf_write_reg(self, reg, arg):
         """
@@ -915,29 +877,6 @@ class NRF24:
             arg = [arg]
         self._nrf_xfer([self.W_REGISTER | reg] + arg)
 
-
-    # def _configure_payload(self):
-    #     if self._payload_size >= RF24_PAYLOAD.MIN:                      # fixed payload
-    #         self._nrf_write_reg(NRF24.RX_PW_P0, self._payload_size)
-    #         self._nrf_write_reg(NRF24.RX_PW_P1, self._payload_size)
-    #         self._nrf_write_reg(NRF24.RX_PW_P2, self._payload_size)
-    #         self._nrf_write_reg(NRF24.RX_PW_P3, self._payload_size)
-    #         self._nrf_write_reg(NRF24.RX_PW_P4, self._payload_size)
-    #         self._nrf_write_reg(NRF24.RX_PW_P5, self._payload_size)
-    #         self._nrf_write_reg(NRF24.DYNPD, 0)
-    #         self._nrf_write_reg(NRF24.FEATURE, 0)
-    #     else:                                                           # dynamic payload
-    #         self._nrf_write_reg(NRF24.RX_PW_P0, 0)
-    #         self._nrf_write_reg(NRF24.RX_PW_P1, 0)
-    #         self._nrf_write_reg(NRF24.RX_PW_P2, 0)
-    #         self._nrf_write_reg(NRF24.RX_PW_P3, 0)
-    #         self._nrf_write_reg(NRF24.RX_PW_P4, 0)
-    #         self._nrf_write_reg(NRF24.RX_PW_P5, 0)
-    #         self._nrf_write_reg(NRF24.DYNPD, NRF24.DPL_P0 | NRF24.DPL_P1 | NRF24.DPL_P2 | NRF24.DPL_P3 | NRF24.DPL_P4 | NRF24.DPL_P5 | NRF24.DPL_P6 | NRF24.DPL_P7)
-    #         if self._payload_size == RF24_PAYLOAD.ACK: 
-    #             self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL | NRF24.EN_ACK_PAY)
-    #         else:
-    #             self._nrf_write_reg(NRF24.FEATURE, NRF24.EN_DPL)
 
     # Constants related to NRF24 configuration/operation.
     _AUX_SPI = (1 << 8)

@@ -2,12 +2,14 @@
 
 TODO:
 =====
+- set_interrupt_mask()
+- get_interrupt_mask()
+
+- delay + retries in constructor.
+
+- remove padding?
+
+- self._power_tx = 0???
+
 - implement a soft reset.
 
-- Experiment with acknowledgement payload.
-
-- Experiment with interrupt. Implement mask_interrupt(MASK_RX_DR | MASK_RX_DR | MASK_MAX_RT )
-    - disable_all_interrupts, enable_all_interrupts
-    - disable_receive_interrupt, enable_receive_interrupt,
-    - disable_send_interrupt, enable_send_interrupt
-    - disable_retransmit_interrupt, enable_retransmit_interrupt

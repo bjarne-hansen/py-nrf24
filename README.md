@@ -15,6 +15,7 @@ This package implement 2.4Ghz communication using NRF24L01+ modules on a Raspber
 * **Version 0.8.0** - Released to PyPi.org on May 1st, 2020.
 * **Version 0.5.2** - Released to PyPi.org on April 20th, 2020.
 
+## Background
 
 The code is based on a modified version of some example code found on [StackExchange](https://raspberrypi.stackexchange.com/questions/77290/nrf24l01-only-correctly-retrieving-status-and-config-registers).  The author of the original code is also the author of the ```pigpio``` library found here http://abyz.me.uk/rpi/pigpio/.
 

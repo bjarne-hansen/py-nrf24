@@ -2,9 +2,6 @@
 __init__        power_down(), power_up_rx()
 send()          power_up_tx()
 
-
-
-
 RF24_PA                         - Enumeration of PA values.
 RF24_DATA_RATE                  - Enumeration of data rates.
 RF24_CRC                        - Enumeration of CRC options.

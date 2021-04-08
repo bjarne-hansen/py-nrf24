@@ -121,7 +121,8 @@ if __name__ == "__main__":
             time.sleep(10)
     except:
         traceback.print_exc()
-        nrf.power_down()
+        nrf1.power_down()
+        nrf2.power_down()
         pi.stop()
 
 

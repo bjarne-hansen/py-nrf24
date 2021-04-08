@@ -13,7 +13,7 @@ as well.
 ### Breaking Changes
 
 
-* **Removed** `set_local_address(address)` which is basically a way to do the same as `open_reading_pipe(RF24_RX_ADDR.P0, address)` so it has been removed to consolidate the code a bit.
+* **Removed** `set_local_address(address)` which is basically a way to do the same as `open_reading_pipe(RF24_RX_ADDR.P1, address)` so it has been removed to consolidate the code a bit.
 
 * **Removed** `set_remote_address(address)` which is basically a way to do the same as `open_writing_pipe(address)`so it has been removed to consolidate the code a bit.
 

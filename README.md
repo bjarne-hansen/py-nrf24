@@ -10,11 +10,14 @@ The ```nrf24``` packages depends on the ```pigpio``` package that is available v
 
 Details avalable at http://abyz.me.uk/rpi/pigpio/download.html
 
-Quick installation on Raspbian:
+Quick installation of `pigpio` on Raspbian:
 
     sudo apt-get update    
     sudo apt-get install pigpio python-pigpio python3-pigpio
 
+## Changes
+
+Version 2.0.0 contains breaking changes compared to version 1.1.1.  Make sure to review [**CHANGES.md**](CHANGES.md) and make changes to you client code accordingly.
 
 ## Installing
 

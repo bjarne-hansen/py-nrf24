@@ -33,7 +33,7 @@ as well.
 
     * `bytearray('1SNSR', 'ascii')` - byte array.
 
-    * `[1, 83, 78, 83, 82]` or `[1, 83, 78, 83, 82]` - list of integers.
+    * `[1, 83, 78, 83, 82]` or `[49, 83, 78, 83, 82]` - list of integers.
 
     * `0xDEADBEEF01` - integer which will be encoded as `[1, 239, 190, 173, 222]`. Notice the byte value `1` at the first position in the array. This is because the integer is converted as little endian.
 

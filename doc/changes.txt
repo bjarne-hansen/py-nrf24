@@ -7,5 +7,9 @@ TODO:
 
 - delay + retries in constructor.
 
+- remove padding?
+
+- self._power_tx = 0???
+
 - implement a soft reset.
 

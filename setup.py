@@ -6,7 +6,7 @@ with open("PyPI.md", "r") as fh:
 # Run setup tools...
 setuptools.setup(
     name="nrf24",
-    version="1.1.1",
+    version="2.0.0",
     keywords='nrf24l01 iot raspberry arduino',
     author="Bjarne Hansen",
     author_email="bjarne@conspicio.dk",

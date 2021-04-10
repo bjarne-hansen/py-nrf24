@@ -31,14 +31,12 @@ Quick installation of `pigpio` on Raspbian:
     sudo apt-get update    
     sudo apt-get install pigpio python-pigpio python3-pigpio
 
-
 ## Installing
 
 You may want to create a virtual environment before installing the `nrf24` package which depends on the `pigpio` package. 
 
     $ pip install nrf24
-
-
+    
 ## Examples
 
 All examples in the `test` folder can be run as command line programs.  They all take optional command line arguments
@@ -48,10 +46,14 @@ be an OK first approach to testing your setup.
 
 All test have been run on a Raspberry Pi 4 and a Raspberry Pi Zero Wireless equipped with 2 x NRF24L01+ modules each.
 
-All examples run with a wiring like the one shown in the Fritzing diagram "Raspberry Pi with Single NRF24L01+ Module"
-below, except the `multi-sender.py` and `multi-receiver.py` examples which requires two NRF24L01+ modules connected to 
-the Raspberry Pi as shown in "Raspberry Pi with Dual NRF24L01+ Modules" below.
+The `int-sender.py` and `int-receiver.py` examples requires extra wiring connenting the IRQ PIN of the NRF24L01+ module
+to a GPIO on the Raspberry.  This wiring is shown in **"Raspberry Pi with Single NRF24L01+ Module (IRQ)"**.
 
+The `multi-sender.py` and `multi-receiver.py` examples requires two NRF24L01+ modules.  The wiring for that setup can be
+seen in **"Raspberry Pi with Dual NRF24L01+ Modules"** below.
+
+The rest of the Raspberry Pi examples runs with the IRQ wiring as described above, or a simpler wiring like the one shown
+in **"Raspberry Pi with Single NRF24L01+ Module"** below.
 
 | Command Line | Comments |
 | ------------ | -------- |
@@ -70,22 +72,41 @@ the Raspberry Pi as shown in "Raspberry Pi with Dual NRF24L01+ Modules" below.
 | `python test/multi-sender.py` | Sends messages using 2 x NRF24L01+ modules connected to the same Raspberry Pi (defult send addresses `1SRVR` and `2SRVR`). |
 | `python test/multi-sender.py` | receives messages using 2 x NRF24L01+ modules connected to the same Raspberry Pi (defult listen addresses `1SRVR` and `2SRVR`). |
 
+If you do not have multiple Raspberry Pi computers, you can run some of the test programs on Arduino. In the `arduino/` directory are sender programs equivalent with
+some of those described above.  The wiring for the Arduino Nano can be seen in **"Arduino Nano with DHT22 and NRF24L01+"** below.  Unlike it's Raspberry Pi counterparts
+the Arduino examples have been done with an actual DHT22 sensor connected so that we do not need to emulate sensor readings.
+
+| Arduino Code            | Comments                                                                                                                 |
+| `arduino/simple-sender` | Sends temperature and humidity readings to the `simple-receiver.py` counterpart.                                         |
+| `arduino/fixed-sender`  | Sends temperature and humidity readings to the `fixed-receiver.py` counterpart.                                          |
+| `arduino/mixed-sender`  | Sends temperature and humidity readings to the `mixed-receiver.py` counterpart.                                          |
+| `arduino/rr-client`     | Executes request/response calls against its `rr-server.py` counterpart.                                                  |
+| `arduino/ack-sender`    | Sends temperature and humidity readings to the `ack-receiver.py` counterpart and receives acknowledgements with payload. |
 
 ## Wiring
 
-### Raspberry Pi with Single NRF24L01+ Module
+### Raspberry Pi with Single NRF24L01+ Module (IRQ)
 
-All the examples, except the `multi-sender.py` and `multi-receiver.py` ones will run with the following wiring of a single NRF24L01+ module.
-
-![Alt](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-1_bb.png "Raspberry Pi with Single NRF24L01+ Module")
+![Raspberry Pi with Single NRF24L01+ Module (IRQ)](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-1-irq_bb.png "Raspberry Pi with Single NRF24L01+ Module (IRQ)")
 
 ### Raspberry Pi with Dual NRF24L01+ Modules
 
 The `multi-sender.py` and `multi-receiver.py` examples requires two NRF24L01+ modules wired to each Raspberry Pi.
 
-![Alt](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-2_bb.png "Raspberry Pi with Dual NRF24L01+ Modules")
+![Raspberry Pi with Dual NRF24L01+ Modules](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-2_bb.png "Raspberry Pi with Dual NRF24L01+ Modules")
 
+### Raspberry Pi with Single NRF24L01+ Module
 
+All the examples, except the `multi-sender.py`, `multi-receiver.py`, `int-sender.py`, and `int-receiver.py` ones will 
+run with the following wiring of a single NRF24L01+ module.
+
+![Raspberry Pi with Single NRF24L01+ Module](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/pizw-nrf24-1_bb.png "Raspberry Pi with Single NRF24L01+ Module")
+
+### Arduino Nano with DHT22 and NRF24L01+
+
+The Arduino examples in `arduino/` can all run with the following wiring.
+
+![Arduino Nano with DHT22 and NRF24L01+](https://github.com/bjarne-hansen/py-nrf24/blob/master/doc/nano-nrf24-1_bb.png "Arduino Nano with DHT22 and NRF24L01+")
 
 
     

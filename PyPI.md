@@ -1,6 +1,6 @@
 # nrf24 for Python
 
-**PLEASE NOTE**: The new version 2.0.0 contains **breaking** changes with previous version 1.1.1.  Please make sure to consult the `CHANGES.md` for details.
+**PLEASE NOTE**: The new version 2.0.0 contains **breaking** changes compared to previous version 1.1.1.  Please make sure to consult the `CHANGES.md` for details.
 
 This package implements 2.4Ghz communication using NRF24L01 modules on a Raspberry Pi using Python via the pigpio daemon.
 

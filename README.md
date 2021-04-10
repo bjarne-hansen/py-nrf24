@@ -77,6 +77,7 @@ some of those described above.  The wiring for the Arduino Nano can be seen in *
 the Arduino examples have been done with an actual DHT22 sensor connected so that we do not need to emulate sensor readings.
 
 | Arduino Code            | Comments                                                                                                                 |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `arduino/simple-sender` | Sends temperature and humidity readings to the `simple-receiver.py` counterpart.                                         |
 | `arduino/fixed-sender`  | Sends temperature and humidity readings to the `fixed-receiver.py` counterpart.                                          |
 | `arduino/mixed-sender`  | Sends temperature and humidity readings to the `mixed-receiver.py` counterpart.                                          |

@@ -1,4 +1,4 @@
-# nrf24 for Python
+# NRF24L01 for Python
 
 This package implement 2.4Ghz communication using NRF24L01+ modules on a Raspberry Pi using Python.
 
